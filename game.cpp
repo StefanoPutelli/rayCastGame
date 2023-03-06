@@ -1,9 +1,11 @@
+#include <unistd.h>
+#include <window.h>
 #include <cmath>
 #include <iostream>
 
 using namespace std;
 
-const int FOV = 180;
+const int FOV = 181;
 
 typedef struct dirVars {
     dirVars(int _x, int _y, float _PDistInnerBlockX, float _PDistInnerBlockY) {
@@ -32,7 +34,6 @@ const int Y = 10;
 // 3 -> error in direction vars
 
 // angle where the player is looking, 0 is left and 90 is up and 180 is right and 270 is down
-int direction = 90;
 
 const float tile_size = 1.0;
 
@@ -49,10 +50,10 @@ float fov_array[FOV];
 
 int world[Y][X] = {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 1, 0, 0, 2, 1, 0, 0, 0, 1}, {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
+    {1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}, {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
     {1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1}, {1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
+    {1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1}, {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
 
 float getDecimals(float x) { return x - (int)x; }
 
@@ -87,9 +88,11 @@ void saveInTheFov(int index, float dist) { fov_array[index] = abs(dist); }
 dirVars getDirVars(int angle) {
     if (angle < 90) {
         if (angle == 0) {
-            return dirVars(1, 0, tile_size - getDecimals(playerX), getDecimals(playerY));
+            return dirVars(1, 0, tile_size - getDecimals(playerX),
+                           getDecimals(playerY));
         }
-        return dirVars(1, -1, tile_size - getDecimals(playerX), getDecimals(playerY));
+        return dirVars(1, -1, tile_size - getDecimals(playerX),
+                       getDecimals(playerY));
     } else if (angle < 180) {
         if (angle == 90) {
             return dirVars(0, -1, getDecimals(playerX), getDecimals(playerY));
@@ -97,143 +100,72 @@ dirVars getDirVars(int angle) {
         return dirVars(-1, -1, getDecimals(playerX), getDecimals(playerY));
     } else if (angle < 270) {
         if (angle == 180) {
-            return dirVars(-1, 0, getDecimals(playerX), tile_size - getDecimals(playerY));
+            return dirVars(-1, 0, getDecimals(playerX),
+                           tile_size - getDecimals(playerY));
         }
-        return dirVars(-1, 1, getDecimals(playerX), tile_size - getDecimals(playerY));
+        return dirVars(-1, 1, getDecimals(playerX),
+                       tile_size - getDecimals(playerY));
     } else {
         if (angle == 270) {
-            return dirVars(0, 1, tile_size - getDecimals(playerX), tile_size - getDecimals(playerY));
+            return dirVars(0, 1, tile_size - getDecimals(playerX),
+                           tile_size - getDecimals(playerY));
         }
-        return dirVars(1, 1, tile_size - getDecimals(playerX), tile_size - getDecimals(playerY));
+        return dirVars(1, 1, tile_size - getDecimals(playerX),
+                       tile_size - getDecimals(playerY));
     }
 }
 
-
-
-void rayCastInTheFov(int depth) {
+void rayCastInTheFov(int depth, int direction) {
     float x_distance;
     float y_distance;
-    for (int i = 0; i <= FOV; i++) {
-            if(fov_array[i] != -1) continue;
-            int angle = (direction + 180 + FOV / 2 + i) % 360;
-            dirVars dirVal = getDirVars(angle);
-            if(dirVal.x == 0 && dirVal.y == 0){
-              cerr << "Direction error";
-              exit(3);
-            }
-            float angle_rad = (float) angle * 3.14159 / 360;
+    for (int i = 0; i < FOV; i++) {
+        int angle = (direction - FOV / 2 + i) % 360;
+        dirVars dirVal = getDirVars(angle);
+        if (dirVal.x == 0 && dirVal.y == 0) {
+            cerr << "Direction error";
+            exit(3);
+        }
+        float angle_rad = (float)angle * 3.14159 / 180;
         for (int dpt = 0; dpt < depth; dpt++) {
-            if(dirVal.y == 0){
-              y_distance = dirVal.PDistInnerBlockY + dpt*tile_size;
-            }else{
-              y_distance = (dirVal.PDistInnerBlockY + dpt*tile_size) * dirVal.y / sin(angle_rad);
+            if (dirVal.y == 0) {
+                y_distance = dirVal.PDistInnerBlockY + dpt * tile_size;
+            } else {
+                y_distance = (dirVal.PDistInnerBlockY + dpt * tile_size) *
+                             dirVal.y / sin(angle_rad);
             }
-            if(dirVal.x == 0){
-              x_distance = dirVal.PDistInnerBlockX + dpt*tile_size;
-            }else{
-              x_distance = (dirVal.PDistInnerBlockX + dpt*tile_size) * dirVal.x / cos(angle_rad);
+            if (dirVal.x == 0) {
+                x_distance = dirVal.PDistInnerBlockX + dpt * tile_size;
+            } else {
+                x_distance = (dirVal.PDistInnerBlockX + dpt * tile_size) *
+                             dirVal.x / cos(angle_rad);
             }
             if (x_distance < y_distance) {
-              int dY = (int)playerY;
-              int dX = (int)(x_distance + playerX);
-              if (world[dX][dY] == 1) {
-                  saveInTheFov(179 - i, x_distance);
-              }
+                int dY = (int)playerY;
+                int dX =
+                    (int)(x_distance + playerX + dirVal.x +
+                          0.1 *
+                              dirVal
+                                  .x);  //we need that 0.1 to make the apporximation for checking if there is a wall or not
+                if (world[dX][dY] == 1) {
+                    saveInTheFov(i, x_distance);
+                    break;
+                }
             } else {
-              int dX = (int)playerX;
-              int dY = (int)(y_distance + playerY);
-              if (world[dX][dY] == 1) {
-                  saveInTheFov(179 - i, y_distance);
-              }
-          }
-        }
-    }
-}
-
-void rayCastDownRight(int blocks_to_pass) {
-    // calculate distance from next block
-    for (int i = 0; i < 90; i += step) {
-        if (fov_array[179 - i] != -1) {
-            continue;
-        }
-        float x_distance;
-        float y_distance;
-        if (i == 0) {
-            x_distance = (tile_size - getDecimals(playerX) + blocks_to_pass);
-            y_distance = 0;
-        } else if (i == 90) {
-            x_distance = 0;
-            y_distance = (tile_size - getDecimals(playerY) + blocks_to_pass);
-        } else {
-            float rad = i * 3.14159 / 180;
-            x_distance =
-                (tile_size - getDecimals(playerX) + blocks_to_pass) / cos(rad);
-            y_distance =
-                (tile_size - getDecimals(playerY) + blocks_to_pass) / sin(rad);
-        }
-        if (x_distance < y_distance) {
-            int dY = (int)playerY;
-            int dX = (int)(x_distance + playerX);
-            if (world[dX][dY] == 1) {
-                saveInTheFov(i, x_distance);
-            }
-        } else {
-            int dX = (int)playerX;
-            int dY = (int)(y_distance + playerY);
-            if (world[dX][dY] == 1) {
-                saveInTheFov(i, y_distance);
+                int dX = (int)playerX;
+                int dY =
+                    (int)(y_distance + playerY + dirVal.y + 0.1 * dirVal.y);
+                //   cout << "dx " << dX << " " << "dy " << dY << " py " << playerY << " dirvaly " << dirVal.y << " angle " << angle << endl;
+                if (world[dX][dY] == 1) {
+                    saveInTheFov(i, y_distance);
+                    break;
+                }
             }
         }
     }
-}
-
-void rayCastDownLeft(int blocks_to_pass) {
-    // calculate distance from next block
-    for (int i = 90; i > 0; i -= step) {
-        if (fov_array[i] != -1) {
-            continue;
-        }
-        float x_distance;
-        float y_distance;
-        if (i == 0) {
-            x_distance = (getDecimals(playerX) + blocks_to_pass);
-            y_distance = 0;
-        } else if (i == 90) {
-            x_distance = 0;
-            y_distance = (getDecimals(playerY) + blocks_to_pass);
-        } else {
-            float rad = i * 3.14159 / 180;
-            x_distance =
-                (tile_size - getDecimals(playerX) + blocks_to_pass) / cos(rad);
-            y_distance =
-                (tile_size - getDecimals(playerY) + blocks_to_pass) / sin(rad);
-        }
-        if (x_distance < y_distance) {
-            int dY = (int)playerY;
-            int dX = (int)(playerX + x_distance);
-            if (world[dX][dY] == 1) {
-                saveInTheFov(i, x_distance);
-            }
-        } else {
-            int dX = (int)playerX;
-            int dY = (int)(playerY + y_distance);
-            if (world[dX][dY] == 1) {
-                saveInTheFov(i, y_distance);
-            }
-        }
-    }
-}
-float rayCastDownRight(int steps, int blocks_to_pass) {
-    cout << "bella";
-    return 0;
-}
-float rayCastDownLeft(int steps, int blocks_to_pass) {
-    cout << "bella";
-    return 0;
 }
 
 void printFovArray() {
-    for (int i = 0; i < 180; i++) {
+    for (int i = 0; i < FOV; i++) {
         cout << fov_array[i] << " ";
     }
     cout << endl;
@@ -253,10 +185,45 @@ void findAndSetPlayer() {
     exit(0);
 }
 
+void printMatrix() {
+    for (int l = 0; l < 40; l++) {
+        for (int i = 0; i < FOV; i++) {
+            if (fov_array[i] == -1) {
+                cout << " ";
+            } else if (fov_array[i] > 5) {
+                cout << " ";
+            } else if (fov_array[i] > 4) {
+                cout << "░";
+            } else if (fov_array[i] > 3) {
+                cout << "▒";
+            } else if (fov_array[i] > 2) {
+                cout << "▒";
+            } else if (fov_array[i] > 1) {
+                cout << "▓";
+            } else if (fov_array[i] > 0) {
+                cout << "█";
+            }
+        }
+        cout << endl;
+    }
+}
+
+
+void clearScreen()
+{
+    HANDLE hOut;
+    COORD Position;
+
+    hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    Position.X = 0;
+    Position.Y = 0;
+    SetConsoleCursorPosition(hOut, Position);
+}
+
 int main() {
     resetFovArray(180);
     findAndSetPlayer();
-    cout << "player found at: " << playerX << " " << playerY << endl;
     if (!checkWolrd()) {
         cout << "World is not valid" << endl;
         return 1;
@@ -269,29 +236,18 @@ int main() {
     //   rayCastDownLeft(l);
     // }
 
-    rayCastInTheFov(1);
+    int i = 0;
+    while (true) {
+        rayCastInTheFov(10, i);
+        clearScreen();
+        printMatrix();
+        sleep(0.3);
+        i++;
+        if(i == 360) i = 0;
 
-    printFovArray();
-    for (int l = 0; l < 40; l++) {
-      for (int i = 0; i < 180; i++) {
-        if (fov_array[i] == -1) {
-          cout << "░";
-        } else if (fov_array[i] > 5) {
-          cout << "░";
-        } else if (fov_array[i] > 4) {
-          cout << "▒";
-        } else if (fov_array[i] > 3) {
-          cout << "▓";
-        } else if (fov_array[i] > 2) {
-          cout << "▓";
-        } else if (fov_array[i] > 1) {
-          cout << "█";
-        } else if (fov_array[i] > 0) {
-          cout << "█";
-        }
-      }
-      cout << endl;
     }
 
     return 0;
 }
+
+//░▒▓█
