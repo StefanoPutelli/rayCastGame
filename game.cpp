@@ -1,10 +1,11 @@
 #include <unistd.h>
+
 #include <cmath>
 #include <iostream>
 
 using namespace std;
 
-const int FOV = 181;
+const int FOV = 180 + 1;
 const int HEIGHT = 40;
 
 typedef struct dirVars {
@@ -44,10 +45,9 @@ int step = 1;
 
 int visibleBlock[10];
 
-char screen[FOV][HEIGHT];
+char screen[FOV-1][HEIGHT];
 
 float fov_array[FOV];
-
 
 int world[Y][X] = {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
@@ -186,24 +186,10 @@ void findAndSetPlayer() {
     exit(0);
 }
 
-// else if (fov_array[i] > 5) {
-//             cout << " ";
-//         } else if (fov_array[i] > 4) {
-//             cout << "░";
-//         } else if (fov_array[i] > 3) {
-//             cout << "▒";
-//         } else if (fov_array[i] > 2) {
-//             cout << "▒";
-//         } else if (fov_array[i] > 1) {
-//             cout << "▓";
-//         } else if (fov_array[i] > 0) {
-//             cout << "█";
-//         }
-
 void renderScreen() {
     for (int i = 0; i < FOV; i++) {
         if (fov_array[i] == -1) {
-            for(int l = 0; l < HEIGHT; l++){
+            for (int l = 0; l < HEIGHT; l++) {
                 screen[i][l] = ' ';
             }
         } else {
@@ -214,16 +200,33 @@ void renderScreen() {
                 if (l < start || l > end) {
                     screen[i][l] = ' ';
                 } else {
-                    screen[i][l] = '#';
+                    if (fov_array[i] > 5) {
+                        screen[i][l] = ' ';
+                    }
+                    else if (fov_array[i] > 4) {
+                        screen[i][l] = '░';
+                    }
+                    else if (fov_array[i] > 3) {
+                        screen[i][l] = '▒';
+                    }
+                    else if (fov_array[i] > 2) {
+                        screen[i][l] = '▒';
+                    }
+                    else if (fov_array[i] > 1) {
+                        screen[i][l] = '▓';
+                    }
+                    else if (fov_array[i] > 0) {
+                        screen[i][l] = '█';
+                    }
                 }
             }
         }
     }
 }
 
-void printScreen(){
-    for(int i = 0; i < HEIGHT; i++){
-        for(int j = 0; j < FOV; j++){
+void printScreen() {
+    for (int i = 0; i < HEIGHT; i++) {
+        for (int j = 0; j < FOV; j++) {
             cout << screen[j][i];
         }
         cout << endl;
@@ -248,14 +251,14 @@ int main() {
     int i = 0;
     while (true) {
         rayCastInTheFov(10, i);
-        system("clear");
+        // system("clear");
         renderScreen();
         printScreen();
         cout << "angle " << i << endl;
         usleep(10000);
         i++;
-        if(i == 360) i = 0;
-
+        if (i == 360)
+            i = 0;
     }
 
     return 0;
