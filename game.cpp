@@ -1,44 +1,6 @@
-#include <termios.h>
-#include <unistd.h>
-
-#include <cmath>
-#include <iostream>
+#include "game.h"
 
 using namespace std;
-
-const int FOV = 100 + 1;
-const int HEIGHT = 40;
-
-typedef struct dirVars {
-    dirVars(){
-        PDistInnerBlockX = 0;
-        PDistInnerBlockY = 0;
-    }
-    dirVars(float _PDistInnerBlockX, float _PDistInnerBlockY) {
-        PDistInnerBlockX = _PDistInnerBlockX;
-        PDistInnerBlockY = _PDistInnerBlockY;
-    }
-    float PDistInnerBlockX;
-    float PDistInnerBlockY;
-} dirVars;
-
-const int X = 11;
-const int Y = 10;
-
-const int INT_MAX = 2147483647;
-
-// up -> 0
-// right -> 1
-// down -> 2
-// left -> 3
-
-// 0 -> player not found
-// 1 -> world not valid
-// 2 -> step to large
-
-// angle where the player is looking, 0 is left and 90 is up and 180 is right and 270 is down
-
-const float tile_size = 1.0;
 
 float playerX;
 float playerY;
@@ -110,7 +72,6 @@ bool checkWolrd() {
 }
 
 void saveInTheFov(int index, float dist) {
-    cout << dist << endl;
     fov_array[index] = abs(dist);
 }
 
@@ -154,7 +115,7 @@ void markBlock(int x, int y, int marker) {
     world_copy[y][x] = marker;
 }
 
-void rayCastInTheFov(int depth, int direction) {
+void rayCastInTheFov(int depth) {
     float x_distance;
     float y_distance;
     float angle_rad;
@@ -190,7 +151,7 @@ void rayCastInTheFov(int depth, int direction) {
                 dX = (int)(playerX + x_distance_perp);
                 dY = (int)(playerY + y_distance_perp);
                 if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
-                    //cout << "out of bounds for angle: " << i << " angle: " << angle << endl;
+                    saveInTheFov(FOV - index, -1);
                     continue;
                 }
                 if (world[dY][dX] == 1) {
@@ -204,7 +165,7 @@ void rayCastInTheFov(int depth, int direction) {
                 dX = (int)(playerX + x_distance_perp);
                 dY = (int)(playerY + y_distance_perp);
                 if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
-                    //cout << "out of bounds index: " << i << " angle: " << angle << endl;
+                    saveInTheFov(FOV - index, -1);
                     continue;
                 }
                 if (world[dY][dX] == 1) {
@@ -331,41 +292,9 @@ void captureKey() {
     if (key == 'q') {
         exit(0);
     }
+    if(direction < 0) direction = 360;
 }
 
-int main() {
-    resetFovArray();
-    findAndSetPlayer();
-    if (!checkWolrd()) {
-        cout << "World is not valid" << endl;
-        return 1;
-    }
 
-    // getVisibleBlockUP();
-    // cout << "start rayCasting" << endl;
-    // for (int l = 0; l < 10; l++) {
-    //   rayCastDownRight(l);
-    //   rayCastDownLeft(l);
-    // }
-
-    while (true) {
-        resetFovArray();
-        resetArrayCopy();
-
-        captureKey();
-        if(direction < 0) direction = 360;
-        rayCastInTheFov(100, direction);
-
-        //system("clear");
-        printFovArray();
-        renderScreen();
-        printScreen();
-        printMiniMap();
-
-        cout << "angle " << direction % 360 << endl;
-    }
-
-    return 0;
-}
 
 //░▒▓█
