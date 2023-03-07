@@ -128,7 +128,7 @@ void rayCastInTheFov(int depth) {
     float sinAngle;
     float cosAngle;
     int index = 0;
-    for (int i = (int)(direction - FOV/2); i < (int)(direction + FOV/2); i++) {
+    for (int i = (int)(direction - FOV/2); i < (int)(direction + FOV/2) + 2; i++) {
         angle = (360 + i) % 360;
         dirVal = getDirVars(angle);
         angle_rad = (float)angle * 3.14159 / 180;
