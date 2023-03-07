@@ -6,7 +6,7 @@
 
 using namespace std;
 
-const int FOV = 60 + 1;
+const int FOV = 100 + 1;
 const int HEIGHT = 40;
 
 typedef struct dirVars {
@@ -110,6 +110,7 @@ bool checkWolrd() {
 }
 
 void saveInTheFov(int index, float dist) {
+    cout << dist << endl;
     fov_array[index] = abs(dist);
 }
 
@@ -159,63 +160,67 @@ void rayCastInTheFov(int depth, int direction) {
     float angle_rad;
     dirVars dirVal;
     int angle;
-    int y_distance_perp;
-    int x_distance_perp;
+    float y_distance_perp;
+    float x_distance_perp;
     int dX;
     int dY;
+    float sinAngle;
+    float cosAngle;
+    int index = 0;
     for (int i = (int)(direction - FOV/2); i < (int)(direction + FOV/2); i++) {
         angle = (360 + i) % 360;
-        cout << "angle: " << angle << endl;
         dirVal = getDirVars(angle);
         angle_rad = (float)angle * 3.14159 / 180;
+        sinAngle = sin(angle_rad);
+        cosAngle = cos(angle_rad);
         for (int dpt = 0; dpt < depth; dpt++) {
             if (angle == 0 || angle == 180) {
                 y_distance = INT_MAX;
             } else {
-                y_distance = (dirVal.PDistInnerBlockY + dpt * tile_size) / sin(angle_rad);
+                y_distance = ((dirVal.PDistInnerBlockY + dpt) * tile_size * abs(sinAngle));
             }
             if (angle == 90 || angle == 270) {
                 x_distance = INT_MAX;
             } else {
-                x_distance = (dirVal.PDistInnerBlockX + dpt * tile_size) / cos(angle_rad);
+                x_distance = ((dirVal.PDistInnerBlockX + dpt) * tile_size * abs(cosAngle));
             }
             if (x_distance < y_distance) {
-                y_distance_perp = x_distance * sin(angle_rad);
-                x_distance_perp = x_distance * cos(angle_rad);
-                dX = (int)(playerX + x_distance_perp + 0.001);
-                dY = (int)(playerY - y_distance_perp);
+                y_distance_perp = -x_distance * sinAngle;
+                x_distance_perp = x_distance * cosAngle;
+                dX = (int)(playerX + x_distance_perp);
+                dY = (int)(playerY + y_distance_perp);
                 if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
                     //cout << "out of bounds for angle: " << i << " angle: " << angle << endl;
                     continue;
                 }
                 if (world[dY][dX] == 1) {
                     markBlock(dX, dY, 3);
-                    saveInTheFov(FOV - i, x_distance);
+                    saveInTheFov(FOV - index, x_distance);
                     break;
                 }
             } else {
-                y_distance_perp = y_distance * sin(angle_rad);
-                x_distance_perp = y_distance * cos(angle_rad);
+                y_distance_perp = -y_distance * sinAngle;
+                x_distance_perp = y_distance * cosAngle;
                 dX = (int)(playerX + x_distance_perp);
-                dY = (int)(playerY - y_distance_perp + 0.001);
+                dY = (int)(playerY + y_distance_perp);
                 if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
                     //cout << "out of bounds index: " << i << " angle: " << angle << endl;
                     continue;
                 }
                 if (world[dY][dX] == 1) {
                     markBlock(dX, dY, 3);
-                    saveInTheFov(FOV - i, y_distance);
+                    saveInTheFov(FOV - index, y_distance);
                     break;
                 }
             }
         }
+        index++;
     }
 }
 
 void printFovArray() {
     for (int i = 0; i < FOV; i++) {
-        if(fov_array[i] == -1)
-            cout << "fov array error: " << i << endl;
+            cout << fov_array[i] << " ";
     }
     cout << endl;
 }
@@ -285,7 +290,7 @@ char getch() {
     return (buf);
 }
 
-void renderMiniMap() {
+void printMiniMap() {
     for (int i = 0; i < Y; i++) {
         for (int j = 0; j < X; j++) {
             if (world_copy[i][j] == 1) {
@@ -346,16 +351,18 @@ int main() {
     while (true) {
         resetFovArray();
         resetArrayCopy();
+
         captureKey();
         if(direction < 0) direction = 360;
         rayCastInTheFov(100, direction);
-        // system("clear");
+
+        //system("clear");
+        printFovArray();
         renderScreen();
-        //printFovArray();
         printScreen();
-        renderMiniMap();
+        printMiniMap();
+
         cout << "angle " << direction % 360 << endl;
-        usleep(10000);
     }
 
     return 0;
