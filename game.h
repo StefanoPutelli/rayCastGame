@@ -23,15 +23,15 @@ typedef struct dirVars {
 } dirVars;
 
 const int FOV = 60;
-const int HEIGHT = 40;
-const int WIDTH = 80;
+const int RESOLUTION = 3;
+const int HEIGHT = 80;
+const int WIDTH = FOV*RESOLUTION;
 
 const int X = 11;
 const int Y = 10;
 
 const int INT_MAX = 2147483647;
 
-const int RESOLUTION = 5;
 
 const float tile_size = 1.0;
 

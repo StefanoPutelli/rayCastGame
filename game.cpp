@@ -13,7 +13,7 @@ float direction = 0;
 
 int screen[WIDTH][HEIGHT];
 
-float fov_array[FOV*RESOLUTION];
+float fov_array[WIDTH];
 
 int world[Y][X] = {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -34,7 +34,7 @@ float getDecimals(float x) {
 }
 
 void resetFovArray() {
-    for (int i = 0; i < FOV; i++) {
+    for (int i = 0; i < WIDTH; i++) {
         fov_array[i] = -1.0;
     }
 }
@@ -62,7 +62,7 @@ bool checkWolrd() {
 }
 
 void saveInTheFov(int index, float dist) {
-    fov_array[FOV - index] = abs(dist);
+    fov_array[WIDTH - index] = abs(dist);
 }
 
 // returns:
@@ -172,7 +172,7 @@ void rayCastInTheFov(int depth) {
 }
 
 void printFovArray() {
-    for (int i = 0; i < FOV; i++) {
+    for (int i = 0; i < WIDTH; i++) {
             cout << fov_array[i] << " ";
     }
     cout << endl;
@@ -230,7 +230,7 @@ void renderScreen() {
 
 void printScreen() {
     for (int i = 0; i < HEIGHT; i++) {
-        for (int j = 0; j < FOV; j++) {
+        for (int j = 0; j < WIDTH; j++) {
             if(screen[j][i] == 0){
                 cout << "  ";
             }else if(screen[j][i] == 7){
@@ -278,16 +278,28 @@ void printMiniMap() {
     for (int i = 0; i < Y; i++) {
         for (int j = 0; j < X; j++) {
             if (world_copy[i][j] == 1) {
-                cout << "█";
+                cout << "███";
             } else if (i == (int)playerY && j == (int)playerX) {
-                cout << "P";
+                cout << "PPP";
             } else if (world_copy[i][j] == 3) {
-                cout << "▒";
+                cout << "▒▒▒";
             } else {
-                cout << " ";
+                cout << "   ";
             }
         }
         cout << endl;
+        for (int j = 0; j < X; j++) {
+            if (world_copy[i][j] == 1) {
+                cout << "███";
+            } else if (i == (int)playerY && j == (int)playerX) {
+                cout << "PPP";
+            } else if (world_copy[i][j] == 3) {
+                cout << "▒▒▒";
+            } else {
+                cout << "   ";
+            }
+        }
+        cout<<endl;
     }
 }
 
