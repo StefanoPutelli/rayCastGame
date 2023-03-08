@@ -9,9 +9,9 @@ int step = 1;
 
 int visibleBlock[10];
 
-int direction = 0;
+float direction = 0;
 
-char screen[FOV - 1][HEIGHT];
+int screen[FOV][HEIGHT];
 
 float fov_array[FOV];
 
@@ -72,7 +72,7 @@ bool checkWolrd() {
 }
 
 void saveInTheFov(int index, float dist) {
-    fov_array[index] = abs(dist);
+    fov_array[FOV - index] = abs(dist);
 }
 
 // returns:
@@ -127,8 +127,8 @@ void rayCastInTheFov(int depth) {
     int dY;
     float sinAngle;
     float cosAngle;
-    int index = 0;
-    for (int i = (int)(direction - FOV/2); i < (int)(direction + FOV/2) + 2; i++) {
+    int start = (int)(direction - FOV/2);
+    for (int i = start; i < (int)(direction + FOV/2); i++) {
         angle = (360 + i) % 360;
         dirVal = getDirVars(angle);
         angle_rad = (float)angle * 3.14159 / 180;
@@ -151,12 +151,12 @@ void rayCastInTheFov(int depth) {
                 dX = (int)(playerX + x_distance_perp);
                 dY = (int)(playerY + y_distance_perp);
                 if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
-                    saveInTheFov(FOV - index, -1);
-                    continue;
+                    saveInTheFov(i - start - 1, -1);
+                    break;
                 }
                 if (world[dY][dX] == 1) {
                     markBlock(dX, dY, 3);
-                    saveInTheFov(FOV - index, x_distance);
+                    saveInTheFov(i - start - 1, x_distance * cos(abs((direction - i) * 3.14159 / 180)));
                     break;
                 }
             } else {
@@ -165,17 +165,16 @@ void rayCastInTheFov(int depth) {
                 dX = (int)(playerX + x_distance_perp);
                 dY = (int)(playerY + y_distance_perp);
                 if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
-                    saveInTheFov(FOV - index, -1);
-                    continue;
+                    saveInTheFov(i - start - 1, -1);
+                    break;
                 }
                 if (world[dY][dX] == 1) {
                     markBlock(dX, dY, 3);
-                    saveInTheFov(FOV - index, y_distance);
+                    saveInTheFov(i - start - 1, y_distance * cos(abs((direction - i) * 3.14159 / 180)));
                     break;
                 }
             }
         }
-        index++;
     }
 }
 
@@ -212,9 +211,21 @@ void renderScreen() {
             int end = start + height;
             for (int l = 0; l < HEIGHT; l++) {
                 if (l < start || l > end) {
-                    screen[i][l] = ' ';
+                    screen[i][l] = 0;
                 } else {
-                    screen[i][l] = '#';
+                    if(fov_array[i] > 5){
+                        screen[i][l] = 6;
+                    }else if(fov_array[i] > 4){
+                        screen[i][l] = 5;
+                    }else if(fov_array[i] > 3){
+                        screen[i][l] = 4;
+                    }else if(fov_array[i] > 2){
+                        screen[i][l] = 3;
+                    }else if(fov_array[i] > 1){
+                        screen[i][l] = 2;
+                    }else{
+                        screen[i][l] = 1;
+                    }
                 }
             }
         }
@@ -224,7 +235,21 @@ void renderScreen() {
 void printScreen() {
     for (int i = 0; i < HEIGHT; i++) {
         for (int j = 0; j < FOV; j++) {
-            cout << screen[j][i];
+            if(screen[j][i] == 0){
+                cout << "  ";
+            }else if(screen[j][i] == 1){
+                cout << "░ ";
+            }else if(screen[j][i] == 2){
+                cout << "▒" ;
+            }else if(screen[j][i] == 3){
+                cout << "▓ ";
+            }else if(screen[j][i] == 4){
+                cout << "█ ";
+            }else if(screen[j][i] == 5){
+                cout << "▀ ";
+            }else if(screen[j][i] == 6){
+                cout << "▄ ";
+            }
         }
         cout << endl;
     }
