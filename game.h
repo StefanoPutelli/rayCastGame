@@ -27,8 +27,8 @@ const int RESOLUTION = 3;
 const int HEIGHT = 80;
 const int WIDTH = FOV*RESOLUTION;
 
-const int X = 11;
-const int Y = 10;
+const int X = 31;
+const int Y = 21;
 
 const int INT_MAX = 2147483647;
 
