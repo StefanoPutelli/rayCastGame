@@ -11,9 +11,9 @@ int visibleBlock[10];
 
 float direction = 0;
 
-int screen[FOV][HEIGHT];
+int screen[WIDTH][HEIGHT];
 
-float fov_array[FOV];
+float fov_array[FOV*RESOLUTION];
 
 int world[Y][X] = {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -119,49 +119,52 @@ void rayCastInTheFov(int depth) {
     float cosAngle;
     int start = (int)(direction - FOV/2);
     for (int i = start; i < (int)(direction + FOV/2); i++) {
-        angle = (360 + i) % 360;
-        dirVal = getDirVars(angle);
-        angle_rad = (float)angle * 3.14159 / 180;
-        sinAngle = sin(angle_rad);
-        cosAngle = cos(angle_rad);
-        for (int dpt = 0; dpt < depth; dpt++) {
-            if (angle == 0 || angle == 180) {
-                y_distance = INT_MAX;
-            } else {
-                y_distance = ((dirVal.PDistInnerBlockY + dpt) * tile_size * abs(sinAngle));
-            }
-            if (angle == 90 || angle == 270) {
-                x_distance = INT_MAX;
-            } else {
-                x_distance = ((dirVal.PDistInnerBlockX + dpt) * tile_size * abs(cosAngle));
-            }
-            if (x_distance < y_distance) {
-                y_distance_perp = -x_distance * sinAngle;
-                x_distance_perp = x_distance * cosAngle;
-                dX = (int)(playerX + x_distance_perp);
-                dY = (int)(playerY + y_distance_perp);
-                if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
-                    saveInTheFov(i - start - 1, -1);
-                    break;
+        for(int r = 0; r < RESOLUTION; r++){
+            angle = (360 + i + r/RESOLUTION) % 360;
+            dirVal = getDirVars(angle);
+            angle_rad = (float)angle * 3.14159 / 180;
+            sinAngle = sin(angle_rad);
+            cosAngle = cos(angle_rad);
+            for (int dpt = 0; dpt < depth; dpt++) {
+                if (angle == 0 || angle == 180) {
+                    y_distance = INT_MAX;
+                } else {
+                    y_distance = ((dirVal.PDistInnerBlockY + dpt) * tile_size * abs(sinAngle));
                 }
-                if (world[dY][dX] == 1) {
-                    markBlock(dX, dY, 3);
-                    saveInTheFov(i - start - 1, x_distance * cos(abs((direction - i) * 3.14159 / 180)));
-                    break;
+                if (angle == 90 || angle == 270) {
+                    x_distance = INT_MAX;
+                } else {
+                    x_distance = ((dirVal.PDistInnerBlockX + dpt) * tile_size * abs(cosAngle));
                 }
-            } else {
-                y_distance_perp = -y_distance * sinAngle;
-                x_distance_perp = y_distance * cosAngle;
-                dX = (int)(playerX + x_distance_perp);
-                dY = (int)(playerY + y_distance_perp);
-                if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
-                    saveInTheFov(i - start - 1, -1);
-                    break;
-                }
-                if (world[dY][dX] == 1) {
-                    markBlock(dX, dY, 3);
-                    saveInTheFov(i - start - 1, y_distance * cos(abs((direction - i) * 3.14159 / 180)));
-                    break;
+                int fov_index = (i - start)*RESOLUTION + r;
+                if (x_distance < y_distance) {
+                    y_distance_perp = -x_distance * sinAngle;
+                    x_distance_perp = x_distance * cosAngle;
+                    dX = (int)(playerX + x_distance_perp);
+                    dY = (int)(playerY + y_distance_perp);
+                    if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
+                        saveInTheFov(fov_index, -1);
+                        break;
+                    }
+                    if (world[dY][dX] == 1) {
+                        markBlock(dX, dY, 3);
+                        saveInTheFov(fov_index, x_distance * cos(abs((direction - i) * 3.14159 / 180)));
+                        break;
+                    }
+                } else {
+                    y_distance_perp = -y_distance * sinAngle;
+                    x_distance_perp = y_distance * cosAngle;
+                    dX = (int)(playerX + x_distance_perp);
+                    dY = (int)(playerY + y_distance_perp);
+                    if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
+                        saveInTheFov(fov_index, -1);
+                        break;
+                    }
+                    if (world[dY][dX] == 1) {
+                        markBlock(dX, dY, 3);
+                        saveInTheFov(fov_index, y_distance * cos(abs((direction - i) * 3.14159 / 180)));
+                        break;
+                    }
                 }
             }
         }
@@ -189,8 +192,11 @@ void findAndSetPlayer() {
     exit(0);
 }
 
+
+
+//TODO: adesso ce un fov array grande grande, bisogna in qualche modo processarlo per poretarlo a una risoluzione custom , cerando di fare antialiasing sui blocchi
 void renderScreen() {
-    for (int i = 0; i < FOV; i++) {
+    for (int i = 0; i < WIDTH; i++) {
         if (fov_array[i] == -1) {
             for (int l = 0; l < HEIGHT; l++) {
                 screen[i][l] = ' ';
