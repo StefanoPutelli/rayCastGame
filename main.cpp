@@ -10,11 +10,10 @@ int main() {
         return 1;
     }
     while (true) {
-        resetArrayCopy();
+        resetMiniMap();
         captureKey();
         rayCastInTheFov(100);
         system("clear");
-        //printFovArray();
         renderScreen();
         printScreen();
         printMiniMap();

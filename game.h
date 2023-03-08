@@ -32,7 +32,7 @@ const float tile_size = 1.0;
 
 float getDecimals(float x);
 void resetFovArray();
-void resetArrayCopy();
+void resetMiniMap();
 bool checkWolrd();
 void saveInTheFov(int index, float dist);
 dirVars getDirVars(int angle);
