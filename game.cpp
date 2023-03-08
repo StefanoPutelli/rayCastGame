@@ -237,18 +237,20 @@ void printScreen() {
         for (int j = 0; j < FOV; j++) {
             if(screen[j][i] == 0){
                 cout << "  ";
-            }else if(screen[j][i] == 1){
-                cout << "░ ";
-            }else if(screen[j][i] == 2){
-                cout << "▒" ;
-            }else if(screen[j][i] == 3){
-                cout << "▓ ";
-            }else if(screen[j][i] == 4){
-                cout << "█ ";
-            }else if(screen[j][i] == 5){
-                cout << "▀ ";
+            }else if(screen[j][i] == 7){
+                cout << "░░";
             }else if(screen[j][i] == 6){
-                cout << "▄ ";
+                cout << "▒░" ;
+            }else if(screen[j][i] == 5){
+                cout << "▒▒";
+            }else if(screen[j][i] == 4){
+                cout << "▓▒";
+            }else if(screen[j][i] == 3){
+                cout << "▓▓";
+            }else if(screen[j][i] == 2){
+                cout << "█▓";
+            }else if(screen[j][i] == 1){
+                cout << "██";
             }
         }
         cout << endl;

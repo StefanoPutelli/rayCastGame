@@ -20,7 +20,7 @@ typedef struct dirVars {
     float PDistInnerBlockY;
 } dirVars;
 
-const int FOV = 90;
+const int FOV = 60;
 const int HEIGHT = 40;
 
 const int X = 11;
