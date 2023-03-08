@@ -299,16 +299,12 @@ void captureKey() {
     char key;
     key = getch();
     if (key == 'w') {
-        playerY -= 0.1;
+        playerY -= 0.1*sin(direction*3.14159/180);
+        playerX += 0.1*cos(direction*3.14159/180);
     }
     if (key == 's') {
-        playerY += 0.1;
-    }
-    if (key == 'a') {
-        playerX -= 0.1;
-    }
-    if (key == 'd') {
-        playerX += 0.1;
+        playerY += 0.1*sin(direction*3.14159/180);
+        playerX -= 0.1*cos(direction*3.14159/180);
     }
     if (key == 'k') {
         direction += 1;
