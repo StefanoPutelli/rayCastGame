@@ -129,6 +129,8 @@ void rayCastInTheFov(int depth) {
     int dY;
     float sinAngle;
     float cosAngle;
+    int dptX;
+    int dptY;
     int start = (int)(direction - FOV/2);
     for (int i = start; i < (int)(direction + FOV/2); i++) {
         for(int r = 0; r < RESOLUTION; r++){
@@ -137,16 +139,18 @@ void rayCastInTheFov(int depth) {
             angle_rad = (float)angle * 3.14159 / 180;
             sinAngle = sin(angle_rad);
             cosAngle = cos(angle_rad);
-            for (int dpt = 0; dpt < depth; dpt++) {
+            dptX = 0;
+            dptY = 0;
+            while(true) {
                 if (angle == 0 || angle == 180) {
                     y_distance = INT_MAX;
                 } else {
-                    y_distance = ((dirVal.PDistInnerBlockY + dpt) * tile_size * abs(sinAngle));
+                    y_distance = ((dirVal.PDistInnerBlockY + dptY * tile_size) * abs(sinAngle));
                 }
                 if (angle == 90 || angle == 270) {
                     x_distance = INT_MAX;
                 } else {
-                    x_distance = ((dirVal.PDistInnerBlockX + dpt) * tile_size * abs(cosAngle));
+                    x_distance = ((dirVal.PDistInnerBlockX + dptX * tile_size) * abs(cosAngle));
                 }
                 int fov_index = (i - start)*RESOLUTION + r;
                 if (x_distance < y_distance) {
@@ -154,13 +158,16 @@ void rayCastInTheFov(int depth) {
                     x_distance_perp = x_distance * cosAngle;
                     dX = (int)(playerX + x_distance_perp);
                     dY = (int)(playerY + y_distance_perp);
+                    dptX++;
                     if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
                         saveInTheFov(fov_index, -1);
                         break;
                     }
                     if (world[dY][dX] == 1) {
+                        cout<<x_distance * cos(abs(direction - i)* 3.14159 / 180)<<endl;
                         markBlock(dX, dY, 3);
-                        saveInTheFov(fov_index, x_distance * cos(abs((direction - i) * 3.14159 / 180)));
+                        saveInTheFov(fov_index, x_distance * cos(abs(direction - i)* 3.14159 / 180));
+
                         break;
                     }
                 } else {
@@ -168,13 +175,15 @@ void rayCastInTheFov(int depth) {
                     x_distance_perp = y_distance * cosAngle;
                     dX = (int)(playerX + x_distance_perp);
                     dY = (int)(playerY + y_distance_perp);
+                    dptY++;
                     if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
                         saveInTheFov(fov_index, -1);
                         break;
                     }
                     if (world[dY][dX] == 1) {
+                        cout<<y_distance * cos(abs(direction - i) * 3.14159 / 180)<<endl;
                         markBlock(dX, dY, 3);
-                        saveInTheFov(fov_index, y_distance * cos(abs((direction - i) * 3.14159 / 180)));
+                        saveInTheFov(fov_index, y_distance * cos(abs(direction - i) * 3.14159 / 180));
                         break;
                     }
                 }
@@ -214,9 +223,10 @@ void renderScreen() {
                 screen[i][l] = ' ';
             }
         } else {
-            int height = (int)(HEIGHT / fov_array[i]);
-            int start = (HEIGHT - height) / 2;
-            int end = start + height;
+            int screenCenter = (int)(HEIGHT / 2);
+            int halfHeight = (int)(fov_array[i] / 2);
+            int start = screenCenter - halfHeight;
+            int end = screenCenter + halfHeight;
             for (int l = 0; l < HEIGHT; l++) {
                 if (l < start || l > end) {
                     screen[i][l] = 0;
