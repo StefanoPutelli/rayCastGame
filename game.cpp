@@ -9,7 +9,7 @@ int step = 1;
 
 int visibleBlock[10];
 
-float direction = 0;
+float direction = 90;
 
 int screen[WIDTH][HEIGHT];
 
@@ -77,37 +77,17 @@ void saveInTheFov(int index, float dist) {
     fov_array[WIDTH - index] = abs(dist);
 }
 
-// returns:
-// >0 -> collision on x
-// <0 -> collision on y
-// 0 -> both, on the angle
-// null -> no collision
-
 dirVars getDirVars(int angle) {
     if (angle < 90) {
-        if (angle == 0) {
-            return dirVars(tile_size - getDecimals(playerX),
-                           getDecimals(playerY));
-        }
         return dirVars(tile_size - getDecimals(playerX),
                        getDecimals(playerY));
     } else if (angle < 180) {
-        if (angle == 90) {
-            return dirVars(getDecimals(playerX), getDecimals(playerY));
-        }
-        return dirVars(getDecimals(playerX), getDecimals(playerY));
+        return dirVars(getDecimals(playerX), 
+                       getDecimals(playerY));
     } else if (angle < 270) {
-        if (angle == 180) {
-            return dirVars(getDecimals(playerX),
-                           tile_size - getDecimals(playerY));
-        }
         return dirVars(getDecimals(playerX),
                        tile_size - getDecimals(playerY));
     } else {
-        if (angle == 270) {
-            return dirVars(tile_size - getDecimals(playerX),
-                           tile_size - getDecimals(playerY));
-        }
         return dirVars(tile_size - getDecimals(playerX),
                        tile_size - getDecimals(playerY));
     }
@@ -117,79 +97,83 @@ void markBlock(int x, int y, int marker) {
     world_copy[y][x] = marker;
 }
 
-void rayCastInTheFov(int depth) {
+void rayCastInTheFov() {
     float x_distance;
     float y_distance;
     float angle_rad;
     dirVars dirVal;
-    int angle;
+    float angle;
     float y_distance_perp;
     float x_distance_perp;
     int dX;
     int dY;
     float sinAngle;
     float cosAngle;
+    int sinSign;
+    int cosSign;
     int dptX;
     int dptY;
     int start = (int)(direction - FOV/2);
     for (int i = start; i < (int)(direction + FOV/2); i++) {
         for(int r = 0; r < RESOLUTION; r++){
-            angle = (360 + i + r/RESOLUTION) % 360;
+            angle = i % 360 + (float)r/RESOLUTION;
             dirVal = getDirVars(angle);
-            angle_rad = (float)angle * 3.14159 / 180;
+            angle_rad = (float)(angle * 3.14159 / 180);
             sinAngle = sin(angle_rad);
             cosAngle = cos(angle_rad);
+            sinSign = sinAngle > 0 ? 1 : -1;
+            cosSign = cosAngle > 0 ? 1 : -1;
             dptX = 0;
             dptY = 0;
             while(true) {
                 if (angle == 0 || angle == 180) {
                     y_distance = INT_MAX;
                 } else {
-                    y_distance = ((dirVal.PDistInnerBlockY + dptY * tile_size) * abs(sinAngle));
+                    y_distance = ((dirVal.PDistInnerBlockY + (dptY * tile_size)) / abs(sinAngle));
                 }
                 if (angle == 90 || angle == 270) {
                     x_distance = INT_MAX;
                 } else {
-                    x_distance = ((dirVal.PDistInnerBlockX + dptX * tile_size) * abs(cosAngle));
+                    x_distance = ((dirVal.PDistInnerBlockX + (dptX * tile_size)) / abs(cosAngle));
                 }
                 int fov_index = (i - start)*RESOLUTION + r;
                 if (x_distance < y_distance) {
-                    y_distance_perp = -x_distance * sinAngle;
-                    x_distance_perp = x_distance * cosAngle;
+                    y_distance_perp = x_distance * sinAngle;
+                    x_distance_perp = x_distance * cosAngle + tile_size/2*cosSign;
                     dX = (int)(playerX + x_distance_perp);
-                    dY = (int)(playerY + y_distance_perp);
+                    dY = (int)(playerY - y_distance_perp);
                     dptX++;
                     if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
                         saveInTheFov(fov_index, -1);
                         break;
                     }
                     if (world[dY][dX] == 1) {
-                        cout<<x_distance * cos(abs(direction - i)* 3.14159 / 180)<<endl;
                         markBlock(dX, dY, 3);
-                        saveInTheFov(fov_index, x_distance * cos(abs(direction - i)* 3.14159 / 180));
-
+                        cout<<"x perp "<<x_distance<<" y perp "<<y_distance << " X " << angle  << " dptX " << dptX << endl;
+                        saveInTheFov(fov_index, abs(x_distance * cos((float)(fov_index - FOV/2) * 3.14159 / 180)));
                         break;
                     }
                 } else {
-                    y_distance_perp = -y_distance * sinAngle;
+                    y_distance_perp = y_distance * sinAngle + tile_size/2*sinSign;
                     x_distance_perp = y_distance * cosAngle;
                     dX = (int)(playerX + x_distance_perp);
-                    dY = (int)(playerY + y_distance_perp);
+                    dY = (int)(playerY - y_distance_perp);
                     dptY++;
                     if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
                         saveInTheFov(fov_index, -1);
                         break;
                     }
                     if (world[dY][dX] == 1) {
-                        cout<<y_distance * cos(abs(direction - i) * 3.14159 / 180)<<endl;
-                        markBlock(dX, dY, 3);
-                        saveInTheFov(fov_index, y_distance * cos(abs(direction - i) * 3.14159 / 180));
+                        markBlock(dX, dY, 4);
+                        cout<<"x perp "<<x_distance<<" y perp "<<y_distance<< " Y " << angle << " dptY " << dptY << endl;
+                        saveInTheFov(fov_index, abs(y_distance * cos((float)(fov_index - FOV/2)* 3.14159 / 180)));
                         break;
                     }
                 }
             }
         }
     }
+    
 }
 
 void printFovArray() {
@@ -224,7 +208,7 @@ void renderScreen() {
             }
         } else {
             int screenCenter = (int)(HEIGHT / 2);
-            int halfHeight = (int)(fov_array[i] / 2);
+            int halfHeight = (int)(screenCenter/fov_array[i]);
             int start = screenCenter - halfHeight;
             int end = screenCenter + halfHeight;
             for (int l = 0; l < HEIGHT; l++) {
@@ -273,6 +257,11 @@ void printScreen() {
         }
         cout << endl;
     }
+    cout << "angle " << (int)direction % 360 << endl;
+    cout << "playerX " << playerX << endl;
+    cout << "playerY " << playerY << endl;
+    cout << "res " << RESOLUTION << endl;
+    cout << endl;
 }
 
 char getch() {
@@ -304,8 +293,10 @@ void printMiniMap() {
             } else if (i == (int)playerY && j == (int)playerX) {
                 cout << "P";
             } else if (world_copy[i][j] == 3) {
-                cout << "▒";
-            } else {
+                cout << "X";
+            } else if (world_copy[i][j] == 4){
+                cout << "Y";
+            }else {
                 cout << " ";
             }
         }

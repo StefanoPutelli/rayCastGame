@@ -12,7 +12,7 @@ int main() {
     while (true) {
         resetMiniMap();
         captureKey();
-        rayCastInTheFov(100);
+        rayCastInTheFov();
         //system("clear");
         renderScreen();
         printScreen();

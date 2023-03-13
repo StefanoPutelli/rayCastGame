@@ -2,7 +2,8 @@
     "files.associations": {
         "*.embeddedhtml": "html",
         "cmath": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "iostream": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

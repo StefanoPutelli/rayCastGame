@@ -22,10 +22,12 @@ typedef struct dirVars {
     float PDistInnerBlockY;
 } dirVars;
 
-const int FOV = 60;
-const int RESOLUTION = 3;
+const int FOV = 110;
+const int WIDTH = 110;
+
+const int RESOLUTION = WIDTH/FOV;
 const int HEIGHT = 80;
-const int WIDTH = FOV*RESOLUTION;
+const int MAX_DEPTH = 20;
 
 const int X = 31;
 const int Y = 21;
@@ -42,7 +44,7 @@ bool checkWolrd();
 void saveInTheFov(int index, float dist);
 dirVars getDirVars(int angle);
 void markBlock(int x, int y, int marker);
-void rayCastInTheFov(int depth);
+void rayCastInTheFov();
 void printFovArray();
 void findAndSetPlayer();
 void renderScreen();
