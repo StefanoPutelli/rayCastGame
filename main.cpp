@@ -14,6 +14,7 @@ int main() {
         captureKey();
         rayCastInTheFov();
         //system("clear");
+        printFovArray();
         renderScreen();
         printScreen();
         printMiniMap();

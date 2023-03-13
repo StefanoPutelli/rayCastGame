@@ -149,8 +149,8 @@ void rayCastInTheFov() {
                     }
                     if (world[dY][dX] == 1) {
                         markBlock(dX, dY, 3);
-                        cout<<"x perp "<<x_distance<<" y perp "<<y_distance << " X " << angle  << " dptX " << dptX << endl;
-                        saveInTheFov(fov_index, abs(x_distance * cos((float)(fov_index - FOV/2) * 3.14159 / 180)));
+                        cout<<fov_index<<endl;
+                        saveInTheFov(fov_index, abs(x_distance * cos((float)(fov_index/RESOLUTION - FOV/2) * 3.14159 / 180)));
                         break;
                     }
                 } else {
@@ -165,8 +165,8 @@ void rayCastInTheFov() {
                     }
                     if (world[dY][dX] == 1) {
                         markBlock(dX, dY, 4);
-                        cout<<"x perp "<<x_distance<<" y perp "<<y_distance<< " Y " << angle << " dptY " << dptY << endl;
-                        saveInTheFov(fov_index, abs(y_distance * cos((float)(fov_index - FOV/2)* 3.14159 / 180)));
+                        cout<<fov_index<<endl;
+                        saveInTheFov(fov_index, abs(y_distance * cos((float)(fov_index/RESOLUTION - FOV/2)* 3.14159 / 180)));
                         break;
                     }
                 }
