@@ -1,4 +1,4 @@
-#include "game.h"
+#include "stuff/include/game.h"
 
 using namespace std;
 
@@ -9,15 +9,6 @@ int main() {
         cout << "World is not valid" << endl;
         return 1;
     }
-    while (true) {
-        resetMiniMap();
-        captureKey();
-        rayCastInTheFov();
-        //system("clear");
-        printFovArray();
-        renderScreen();
-        printScreen();
-        printMiniMap();
-    }
+    run();
     return 0;
 }

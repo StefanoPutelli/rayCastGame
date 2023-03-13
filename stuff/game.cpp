@@ -1,4 +1,4 @@
-#include "game.h"
+#include "include/game.h"
 
 using namespace std;
 
@@ -11,33 +11,7 @@ int visibleBlock[10];
 
 float direction = 90;
 
-int screen[WIDTH][HEIGHT];
-
 float fov_array[WIDTH];
-
-int world[Y][X] = {
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-    {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1},
-    {1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1,1,1,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1},
-    {1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1,1,1,1},
-    {1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1},
-    {1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1},
-    {1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,1,1,1,1,0,0,1,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,1,0,0,1,1,1,1},
-    {1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1},
-    {1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1},
-    {1,0,0,1,0,0,0,2,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1},
-    {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,1,0,0,1},
-    {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1},
-    {1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1},
-    {1,0,0,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1},
-    {1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1},
-    {1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1},
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-};
 
 int world_copy[Y][X];
 
@@ -176,13 +150,6 @@ void rayCastInTheFov() {
     
 }
 
-void printFovArray() {
-    for (int i = 0; i < WIDTH; i++) {
-            cout << fov_array[i] << " ";
-    }
-    cout << endl;
-}
-
 void findAndSetPlayer() {
     for (int i = 0; i < Y; i++) {
         for (int j = 0; j < X; j++) {
@@ -200,69 +167,7 @@ void findAndSetPlayer() {
 
 
 //TODO: adesso ce un fov array grande grande, bisogna in qualche modo processarlo per poretarlo a una risoluzione custom , cerando di fare antialiasing sui blocchi
-void renderScreen() {
-    for (int i = 0; i < WIDTH; i++) {
-        if (fov_array[i] == -1) {
-            for (int l = 0; l < HEIGHT; l++) {
-                screen[i][l] = ' ';
-            }
-        } else {
-            int screenCenter = (int)(HEIGHT / 2);
-            int halfHeight = (int)(screenCenter/fov_array[i]);
-            int start = screenCenter - halfHeight;
-            int end = screenCenter + halfHeight;
-            for (int l = 0; l < HEIGHT; l++) {
-                if (l < start || l > end) {
-                    screen[i][l] = 0;
-                } else {
-                    if(fov_array[i] > 5){
-                        screen[i][l] = 6;
-                    }else if(fov_array[i] > 4){
-                        screen[i][l] = 5;
-                    }else if(fov_array[i] > 3){
-                        screen[i][l] = 4;
-                    }else if(fov_array[i] > 2){
-                        screen[i][l] = 3;
-                    }else if(fov_array[i] > 1){
-                        screen[i][l] = 2;
-                    }else{
-                        screen[i][l] = 1;
-                    }
-                }
-            }
-        }
-    }
-}
 
-void printScreen() {
-    for (int i = 0; i < HEIGHT; i++) {
-        for (int j = 0; j < WIDTH; j++) {
-            if(screen[j][i] == 0){
-                cout << "  ";
-            }else if(screen[j][i] == 7){
-                cout << "░░";
-            }else if(screen[j][i] == 6){
-                cout << "▒░" ;
-            }else if(screen[j][i] == 5){
-                cout << "▒▒";
-            }else if(screen[j][i] == 4){
-                cout << "▓▒";
-            }else if(screen[j][i] == 3){
-                cout << "▓▓";
-            }else if(screen[j][i] == 2){
-                cout << "█▓";
-            }else if(screen[j][i] == 1){
-                cout << "██";
-            }
-        }
-        cout << endl;
-    }
-    cout << "angle " << (int)direction % 360 << endl;
-    cout << "playerX " << playerX << endl;
-    cout << "playerY " << playerY << endl;
-    cout << "res " << RESOLUTION << endl;
-    cout << endl;
-}
 
 char getch() {
     char buf = 0;
@@ -283,25 +188,6 @@ char getch() {
     if (tcsetattr(0, TCSADRAIN, &old) < 0)
         perror("tcsetattr ~ICANON");
     return (buf);
-}
-
-void printMiniMap() {
-    for (int i = 0; i < Y; i++) {
-        for (int j = 0; j < X; j++) {
-            if (world_copy[i][j] == 1) {
-                cout << "█";
-            } else if (i == (int)playerY && j == (int)playerX) {
-                cout << "P";
-            } else if (world_copy[i][j] == 3) {
-                cout << "X";
-            } else if (world_copy[i][j] == 4){
-                cout << "Y";
-            }else {
-                cout << " ";
-            }
-        }
-        cout << endl;
-    }
 }
 
 void captureKey() {
@@ -330,6 +216,18 @@ void captureKey() {
     if((playerX + deltaX < 0 || playerX + deltaX >= X || playerY + deltaY < 0 || playerY + deltaY >= Y || world[(int)(playerY + deltaY)][(int)(playerX + deltaX)] != 1)){
         playerX += deltaX;
         playerY += deltaY;
+    }
+}
+
+void run() {
+    while (true) {
+        resetMiniMap();
+        captureKey();
+        rayCastInTheFov();
+        system("clear");
+        renderScreen(fov_array);
+        printScreen();
+        printMiniMap(world_copy, playerX, playerY);
     }
 }
 
