@@ -3,7 +3,9 @@
         "*.embeddedhtml": "html",
         "cmath": "cpp",
         "ostream": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "fstream": "cpp",
+        "iosfwd": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

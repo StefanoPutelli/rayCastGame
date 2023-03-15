@@ -2,30 +2,17 @@
 
 using namespace std;
 
-float playerX;
-float playerY;
-
-int step = 1;
-
-int visibleBlock[10];
-
-float direction = 90;
-
-float fov_array[WIDTH];
-
-int world_copy[Y][X];
-
 float getDecimals(float x) {
     return x - (int)x;
 }
 
-void resetFovArray() {
+void resetFovArray(int WIDTH, float* fov_array) {
     for (int i = 0; i < WIDTH; i++) {
         fov_array[i] = -1.0;
     }
 }
 
-void resetMiniMap() {
+void resetMiniMap(unsigned char world_copy[Y][X]) {
     for (int i = 0; i < Y; i++) {
         for (int j = 0; j < X; j++) {
             world_copy[i][j] = world[i][j];
@@ -35,28 +22,28 @@ void resetMiniMap() {
 
 bool checkWolrd() {
     for (int i = 0; i < Y; i++) {
-        if (world[i][0] != 1 || world[i][X - 1] != 1) {
+        if (world[i][0] != '#' || world[i][X - 1] != '#') {
             return false;
         }
     }
     for (int i = 0; i < X; i++) {
-        if (world[0][i] != 1 || world[Y - 1][i] != 1) {
+        if (world[0][i] != '#' || world[Y - 1][i] != '#') {
             return false;
         }
     }
     return true;
 }
 
-void saveInTheFov(int index, float dist) {
+void saveInTheFov(int WIDTH, float* fov_array, int index, float dist) {
     fov_array[WIDTH - index] = abs(dist);
 }
 
-dirVars getDirVars(int angle) {
+dirVars getDirVars(int angle, float playerX, float playerY) {
     if (angle < 90) {
         return dirVars(tile_size - getDecimals(playerX),
                        getDecimals(playerY));
     } else if (angle < 180) {
-        return dirVars(getDecimals(playerX), 
+        return dirVars(getDecimals(playerX),
                        getDecimals(playerY));
     } else if (angle < 270) {
         return dirVars(getDecimals(playerX),
@@ -67,18 +54,17 @@ dirVars getDirVars(int angle) {
     }
 }
 
-void markBlock(int x, int y, int marker) {
+void markBlock(unsigned char world_copy[Y][X], int x, int y, unsigned char marker) {
     world_copy[y][x] = marker;
 }
 
-void rayCastInTheFov() {
+void rayCastInTheFov(int WIDTH, int FOV, int RESOLUTION, float* fov_array, unsigned char world_copy[Y][X], float direction, float playerX, float playerY) {
     float x_distance;
     float y_distance;
     float angle_rad;
     dirVars dirVal;
+    float pre_angle;
     float angle;
-    float y_distance_perp;
-    float x_distance_perp;
     int dX;
     int dY;
     float sinAngle;
@@ -87,19 +73,20 @@ void rayCastInTheFov() {
     int cosSign;
     int dptX;
     int dptY;
-    int start = (int)(direction - FOV/2);
-    for (int i = start; i < (int)(direction + FOV/2); i++) {
-        for(int r = 0; r < RESOLUTION; r++){
-            angle = i % 360 + (float)r/RESOLUTION;
-            dirVal = getDirVars(angle);
-            angle_rad = (float)(angle * 3.14159 / 180);
+    int start = (int)(direction - FOV / 2);
+    for (int i = start; i < (int)(direction + FOV / 2); i++) {
+        for (int r = 0; r < RESOLUTION; r++) {
+            pre_angle = i % 360 + (float)r / RESOLUTION;
+            angle = pre_angle < 0 ? pre_angle + 360 : pre_angle;
+            dirVal = getDirVars(angle, playerX, playerY);
+            angle_rad = (float)(angle * M_PI / 180);
             sinAngle = sin(angle_rad);
             cosAngle = cos(angle_rad);
             sinSign = sinAngle > 0 ? 1 : -1;
             cosSign = cosAngle > 0 ? 1 : -1;
             dptX = 0;
             dptY = 0;
-            while(true) {
+            while (true) {
                 if (angle == 0 || angle == 180) {
                     y_distance = INT_MAX;
                 } else {
@@ -110,52 +97,46 @@ void rayCastInTheFov() {
                 } else {
                     x_distance = ((dirVal.PDistInnerBlockX + (dptX * tile_size)) / abs(cosAngle));
                 }
-                int fov_index = (i - start)*RESOLUTION + r;
+                int fov_index = (i - start) * RESOLUTION + r;
+                float fish_eye_correction = cos((float)(fov_index / RESOLUTION - FOV / 2) * M_PI / 180);
                 if (x_distance < y_distance) {
-                    y_distance_perp = x_distance * sinAngle;
-                    x_distance_perp = x_distance * cosAngle + tile_size/2*cosSign;
-                    dX = (int)(playerX + x_distance_perp);
-                    dY = (int)(playerY - y_distance_perp);
+                    dX = (int)(playerX + (x_distance * cosAngle + tile_size / 2 * cosSign));
+                    dY = (int)(playerY - (x_distance * sinAngle));
                     dptX++;
                     if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
-                        saveInTheFov(fov_index, -1);
+                        saveInTheFov(FOV, fov_array, fov_index, -1);
                         break;
                     }
-                    if (world[dY][dX] == 1) {
-                        markBlock(dX, dY, 3);
-                        cout<<fov_index<<endl;
-                        saveInTheFov(fov_index, abs(x_distance * cos((float)(fov_index/RESOLUTION - FOV/2) * 3.14159 / 180)));
+                    if (world[dY][dX] == '#') {
+                        markBlock(world_copy, dX, dY, 'X');
+                        saveInTheFov(FOV, fov_array, fov_index, abs(x_distance * fish_eye_correction));
                         break;
                     }
                 } else {
-                    y_distance_perp = y_distance * sinAngle + tile_size/2*sinSign;
-                    x_distance_perp = y_distance * cosAngle;
-                    dX = (int)(playerX + x_distance_perp);
-                    dY = (int)(playerY - y_distance_perp);
+                    dX = (int)(playerX + (y_distance * cosAngle));
+                    dY = (int)(playerY - (y_distance * sinAngle + tile_size / 2 * sinSign));
                     dptY++;
                     if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
-                        saveInTheFov(fov_index, -1);
+                        saveInTheFov(FOV, fov_array, fov_index, -1);
                         break;
                     }
-                    if (world[dY][dX] == 1) {
-                        markBlock(dX, dY, 4);
-                        cout<<fov_index<<endl;
-                        saveInTheFov(fov_index, abs(y_distance * cos((float)(fov_index/RESOLUTION - FOV/2)* 3.14159 / 180)));
+                    if (world[dY][dX] == '#') {
+                        markBlock(world_copy, dX, dY, 'Y');
+                        saveInTheFov(FOV, fov_array, fov_index, abs(y_distance * fish_eye_correction));
                         break;
                     }
                 }
             }
         }
     }
-    
 }
 
-void findAndSetPlayer() {
+void findAndSetPlayer(float* playerX, float* playerY) {
     for (int i = 0; i < Y; i++) {
         for (int j = 0; j < X; j++) {
-            if (world[i][j] == 2) {
-                playerX = j + tile_size / 2;
-                playerY = i + tile_size / 2;
+            if (world[i][j] == 'P') {
+                *playerX = j + tile_size / 2;
+                *playerY = i + tile_size / 2;
                 return;
             }
         }
@@ -164,10 +145,7 @@ void findAndSetPlayer() {
     exit(0);
 }
 
-
-
 //TODO: adesso ce un fov array grande grande, bisogna in qualche modo processarlo per poretarlo a una risoluzione custom , cerando di fare antialiasing sui blocchi
-
 
 char getch() {
     char buf = 0;
@@ -190,47 +168,44 @@ char getch() {
     return (buf);
 }
 
-void captureKey() {
+void captureKey(float* direction, float* playerX, float* playerY) {
     char key;
     float deltaY = 0;
     float deltaX = 0;
     key = getch();
     if (key == 'w') {
-        deltaY = -0.1*sin(direction*3.14159/180);
-        deltaX = 0.1*cos(direction*3.14159/180);
+        deltaY = -0.1 * sin(*direction * M_PI / 180);
+        deltaX = 0.1 * cos(*direction * M_PI / 180);
     }
     if (key == 's') {
-        deltaY = 0.1*sin(direction*3.14159/180);
-        deltaX = -0.1*cos(direction*3.14159/180);
+        deltaY = 0.1 * sin(*direction * M_PI / 180);
+        deltaX = -0.1 * cos(*direction * M_PI / 180);
+    }
+    if (key == 'a') {
+        deltaY = 0.1 * cos(*direction * M_PI / 180);
+        deltaX = 0.1 * sin(*direction * M_PI / 180);
+    }
+    if (key == 'd') {
+        deltaY = -0.1 * cos(*direction * M_PI / 180);
+        deltaX = -0.1 * sin(*direction * M_PI / 180);
     }
     if (key == 'k') {
-        direction += 1;
+        *direction = (*direction + VIEW_STEP) >= 360 ? *direction = 0 + *direction + VIEW_STEP - 360 : *direction + VIEW_STEP;
     }
     if (key == 'l') {
-        direction -= 1;
+        *direction = (*direction - VIEW_STEP) < 0 ? *direction = 360 + *direction - VIEW_STEP : *direction - VIEW_STEP;
     }
     if (key == 'q') {
         exit(0);
     }
-    if(direction < 0) direction = 360;
-    if((playerX + deltaX < 0 || playerX + deltaX >= X || playerY + deltaY < 0 || playerY + deltaY >= Y || world[(int)(playerY + deltaY)][(int)(playerX + deltaX)] != 1)){
-        playerX += deltaX;
-        playerY += deltaY;
+    if (deltaX != 0 || deltaY != 0) {
+        if ((*playerX + deltaX < 0 || *playerX + deltaX >= X || *playerY + deltaY < 0 || *playerY + deltaY >= Y || world[(int)(*playerY + deltaY)][(int)(*playerX + deltaX)] != '#')) {
+            cout << "playerX: " << *playerX << " playerY: " << *playerY << " deltaX: " << deltaX << " deltaY: " << deltaY << endl;
+            *playerX += deltaX;
+            *playerY += deltaY;
+        }
     }
+    cout << *playerX << " was " << *playerY << endl;
 }
-
-void run() {
-    while (true) {
-        resetMiniMap();
-        captureKey();
-        rayCastInTheFov();
-        system("clear");
-        renderScreen(fov_array);
-        printScreen();
-        printMiniMap(world_copy, playerX, playerY);
-    }
-}
-
-
 
 //░▒▓█
