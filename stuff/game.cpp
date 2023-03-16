@@ -104,12 +104,13 @@ void rayCastInTheFov(int WIDTH, int FOV, int RESOLUTION, float* fov_array, unsig
                     dY = (int)(playerY - (x_distance * sinAngle));
                     dptX++;
                     if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
-                        saveInTheFov(FOV, fov_array, fov_index, -1);
+                        saveInTheFov(WIDTH, fov_array, fov_index, -1);
                         break;
                     }
                     if (world[dY][dX] == '#') {
                         markBlock(world_copy, dX, dY, 'X');
-                        saveInTheFov(FOV, fov_array, fov_index, abs(x_distance * fish_eye_correction));
+                        cout<<fov_index<<endl;
+                        saveInTheFov(WIDTH, fov_array, fov_index, abs(x_distance * fish_eye_correction));
                         break;
                     }
                 } else {
@@ -117,12 +118,13 @@ void rayCastInTheFov(int WIDTH, int FOV, int RESOLUTION, float* fov_array, unsig
                     dY = (int)(playerY - (y_distance * sinAngle + tile_size / 2 * sinSign));
                     dptY++;
                     if (dY < 0 || dY >= Y || dX < 0 || dX >= X) {
-                        saveInTheFov(FOV, fov_array, fov_index, -1);
+                        saveInTheFov(WIDTH, fov_array, fov_index, -1);
                         break;
                     }
                     if (world[dY][dX] == '#') {
                         markBlock(world_copy, dX, dY, 'Y');
-                        saveInTheFov(FOV, fov_array, fov_index, abs(y_distance * fish_eye_correction));
+                        cout<<fov_index<<endl;
+                        saveInTheFov(WIDTH, fov_array, fov_index, abs(y_distance * fish_eye_correction));
                         break;
                     }
                 }
@@ -182,12 +184,12 @@ void captureKey(float* direction, float* playerX, float* playerY) {
         deltaX = -0.1 * cos(*direction * M_PI / 180);
     }
     if (key == 'a') {
-        deltaY = 0.1 * cos(*direction * M_PI / 180);
-        deltaX = 0.1 * sin(*direction * M_PI / 180);
-    }
-    if (key == 'd') {
         deltaY = -0.1 * cos(*direction * M_PI / 180);
         deltaX = -0.1 * sin(*direction * M_PI / 180);
+    }
+    if (key == 'd') {
+        deltaY = 0.1 * cos(*direction * M_PI / 180);
+        deltaX = 0.1 * sin(*direction * M_PI / 180);
     }
     if (key == 'k') {
         *direction = (*direction + VIEW_STEP) >= 360 ? *direction = 0 + *direction + VIEW_STEP - 360 : *direction + VIEW_STEP;

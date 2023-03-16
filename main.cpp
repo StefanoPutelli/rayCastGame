@@ -17,11 +17,11 @@ static float direction = 90;
 
 unsigned char world_copy[Y][X];
 
-int FOV;
-int WIDTH;
+static int FOV;
+static int WIDTH;
 
-int RESOLUTION;
-int HEIGHT;
+static int RESOLUTION;
+static int HEIGHT;
 
 unsigned char** screen;
 
