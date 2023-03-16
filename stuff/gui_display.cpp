@@ -64,7 +64,9 @@ void resetMapCopy() {
 
 void display() {
     // Cancella il buffer di colore
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for (int index = *WIDTH - 1; index >= 0; index--) {
         if (fov_array_ref[index] != -1) {
             int screenCenter = (int)(*HEIGHT / 2);
