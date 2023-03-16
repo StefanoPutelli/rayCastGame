@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "stuff/include/game.h"
+#include "stuff/include/terminal.h"
 
 using namespace std;
 

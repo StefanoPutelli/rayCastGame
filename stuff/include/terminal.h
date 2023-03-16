@@ -1,10 +1,11 @@
 #ifndef __TERMINAL_H__
 #define __TERMINAL_H__
 
-const int FOV = 90;
-const int WIDTH = 180;
+#include "world.h"
 
-const int RESOLUTION = WIDTH / FOV;
-const int HEIGHT = 80;
+void printFovArray(float* fov_array, int WIDTH);
+void renderScreen(float* fov_array,unsigned char** screen, int WIDTH, int HEIGHT);
+void printScreen(unsigned char** screen, float direction, float playerX, float playerY,int WIDTH, int HEIGHT);
+void printMiniMap(unsigned char world_copy[Y][X], float playerX, float playerY);
 
 #endif
