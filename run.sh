@@ -7,9 +7,6 @@ case "$1" in
     "gui")
         g++ main_gui.cpp ./stuff/game.cpp ./stuff/gui_display.cpp -ljsoncpp -lGL -lGLU -lglut -o ./out/gui && ./out/gui
         ;;
-    "server")
-        g++ main.cpp ./stuff/game.cpp ./stuff/server.cpp -ljsoncpp -o ./out/server && ./out/server server
-        ;;
     *)
         # Operazione da eseguire quando l'argomento non è riconosciuto
         echo "Invalid argument"
