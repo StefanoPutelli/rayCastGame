@@ -1,78 +1,124 @@
 #include <GL/glut.h>
 #include <string.h>
 
-// Dimensioni dell'immagine
-const int IMAGE_WIDTH = 256;
-const int IMAGE_HEIGHT = 256;
+#include <iostream>
 
-// Array di pixel di esempio
-unsigned char screen[IMAGE_WIDTH][IMAGE_HEIGHT][4];
+#include "include/game.h"
+#include "include/gui.h"
 
-const int MAX_VIEW = 5;
+const int UPDATE_INTERVAL = 16;  // 60 fps
 
-int c = 0;
+float* fov_array_ref;
 
-float* fov_array_gui;
+float* playerX;
+float* playerY;
 
-void setColor(int x, int y, int r, int g, int b, int a) {
-    screen[x][y][0] = r;
-    screen[x][y][1] = g;
-    screen[x][y][2] = b;
-    screen[x][y][3] = a;
+float* direction;
+
+unsigned char world_copy[Y][X];
+
+int* FOV;
+int* WIDTH;
+
+int* RESOLUTION;
+int* HEIGHT;
+
+typedef struct Pixel {
+    Pixel() {
+        r = 0.0f;
+        g = 0.0f;
+        b = 0.0f;
+    }
+    Pixel(float r_, float g_, float b_) {
+        r = r_;
+        g = g_;
+        b = b_;
+    }
+    float r, g, b;
+} Pixel;
+
+Pixel** screen_rgb;
+
+void initVars(float* fov_array_, float* playerX_, float* playerY_, float* direction_, int* FOV_, int* WIDTH_, int* RESOLUTION_, int* HEIGHT_) {
+    fov_array_ref = fov_array_;
+    playerX = playerX_;
+    playerY = playerY_;
+    direction = direction_;
+    FOV = FOV_;
+    WIDTH = WIDTH_;
+    RESOLUTION = RESOLUTION_;
+    HEIGHT = HEIGHT_;
+    screen_rgb = new Pixel*[*WIDTH];
+    for (int i = 0; i < *WIDTH; i++) {
+        screen_rgb[i] = new Pixel[*HEIGHT];
+    }
 }
 
-void renderDisplay() {
-    for (int i = 0; i < IMAGE_WIDTH; i++) {
-        if (fov_array_gui[i] == -1) {
-            for (int l = 0; l < IMAGE_HEIGHT; l++) {
-                setColor(i, l, 0, 0, 0, 255);
-            }
-        } else {
-            int screenCenter = (int)(IMAGE_HEIGHT / 2);
-            int halfHeight = (int)(screenCenter / fov_array_gui[i]);
-            int start = screenCenter - halfHeight;
-            int end = screenCenter + halfHeight;
-            for (int l = 0; l < IMAGE_HEIGHT; l++) {
-                if (l < start || l > end) {
-                    setColor(i, l, 0, 0, 0, 255);
-                } else {
-                    if (fov_array_gui[i] > MAX_VIEW) {
-                        setColor(i, l, 255, 255, 255, 255);
-                    } else {
-                        unsigned char col = (int)((float)(fov_array_gui[i] / MAX_VIEW) * 255);
-                        setColor(i, l, col, col, col, 255);
-                    }
-                }
-            }
+void resetMapCopy() {
+    for (int y = 0; y < Y; y++) {
+        for (int x = 0; x < X; x++) {
+            world_copy[y][x] = world[y][x];
         }
     }
 }
 
-
-void renderScreen(float* _fov_array) {
-    // Inizializza glut e crea la finestra
-    fov_array_gui = _fov_array;
+void display() {
+    // Cancella il buffer di colore
     glClear(GL_COLOR_BUFFER_BIT);
+    for (int index = *WIDTH - 1; index >= 0; index--) {
+        if (fov_array_ref[index] != -1) {
+            int screenCenter = (int)(*HEIGHT / 2);
+            int halfHeight = (int)(screenCenter / fov_array_ref[index]);
+            int start = screenCenter - halfHeight;
+            int end = screenCenter + halfHeight;
+            glColor4f(0.0, 0.0, 1.0, 1.0f / fov_array_ref[index]);
+            glBegin(GL_LINES);
+            glVertex2f(index, start);
+            glVertex2f(index, end);
+            glEnd();
+        }
+    }
 
-    // Disegna l'immagine
-    glDrawPixels(IMAGE_WIDTH, IMAGE_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, screen);
-    renderDisplay();
-    // Richiede di ridisegnare la finestra
+    // Visualizza il buffer di disegno
     glutSwapBuffers();
-    glutPostRedisplay();
-
-    // Avvia la visualizzazione
-
 }
 
-int main(int argc, char** argv) {
+void update(int value) {
+    // Modifica il contenuto dell'array screen[X][Y]
+    //resetMapCopy();
+    captureKey(direction, playerX, playerY);
+    rayCastInTheFov(*WIDTH, *FOV, *RESOLUTION, fov_array_ref, world_copy, *direction, *playerX, *playerY);
+    glutPostRedisplay();
+    glutTimerFunc(UPDATE_INTERVAL, update, 0);
+}
+
+void reshape(int w, int h) {
+    // Imposta la viewport per coprire l'intera finestra
+    glViewport(0, 0, w, h);
+
+    // Imposta la proiezione ortografica
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, w, 0, h);
+
+    // Imposta la matrice di modello-vista
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
+
+void run_gui(float* fov_array_, float* playerX_, float* playerY_, float* direction_, int* FOV_, int* WIDTH_, int* RESOLUTION_, int* HEIGHT_) {
+    initVars(fov_array_, playerX_, playerY_, direction_, FOV_, WIDTH_, RESOLUTION_, HEIGHT_);
     char* myargv[1];
     int myargc = 1;
     myargv[0] = strdup("Myappname");
     glutInit(&myargc, myargv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);
-    glutInitWindowSize(IMAGE_WIDTH, IMAGE_HEIGHT);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+    std::cout << *WIDTH << " " << *HEIGHT << std::endl;
+    glutInitWindowSize(*WIDTH, *HEIGHT);
     glutCreateWindow("Pixel Array");
 
-    return 0;
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+    glutTimerFunc(0, update, 0);
+    glutMainLoop();
 }

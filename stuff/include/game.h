@@ -26,7 +26,7 @@ const int INT_MAX = 2147483647;
 
 const int MAX_DEPTH = 20;
 
-const float VIEW_STEP = 1;
+const float VIEW_STEP = 2;
 
 const float tile_size = 1.0;
 

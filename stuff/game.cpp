@@ -109,7 +109,6 @@ void rayCastInTheFov(int WIDTH, int FOV, int RESOLUTION, float* fov_array, unsig
                     }
                     if (world[dY][dX] == '#') {
                         markBlock(world_copy, dX, dY, 'X');
-                        cout<<fov_index<<endl;
                         saveInTheFov(WIDTH, fov_array, fov_index, abs(x_distance * fish_eye_correction));
                         break;
                     }
@@ -123,7 +122,6 @@ void rayCastInTheFov(int WIDTH, int FOV, int RESOLUTION, float* fov_array, unsig
                     }
                     if (world[dY][dX] == '#') {
                         markBlock(world_copy, dX, dY, 'Y');
-                        cout<<fov_index<<endl;
                         saveInTheFov(WIDTH, fov_array, fov_index, abs(y_distance * fish_eye_correction));
                         break;
                     }
@@ -202,12 +200,10 @@ void captureKey(float* direction, float* playerX, float* playerY) {
     }
     if (deltaX != 0 || deltaY != 0) {
         if ((*playerX + deltaX < 0 || *playerX + deltaX >= X || *playerY + deltaY < 0 || *playerY + deltaY >= Y || world[(int)(*playerY + deltaY)][(int)(*playerX + deltaX)] != '#')) {
-            cout << "playerX: " << *playerX << " playerY: " << *playerY << " deltaX: " << deltaX << " deltaY: " << deltaY << endl;
             *playerX += deltaX;
             *playerY += deltaY;
         }
     }
-    cout << *playerX << " was " << *playerY << endl;
 }
 
 //░▒▓█

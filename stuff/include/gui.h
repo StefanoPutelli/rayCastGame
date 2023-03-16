@@ -1,10 +1,6 @@
 #ifndef __GUI_H__
 #define __GUI_H__
 
-const int FOV = 90;
-const int WIDTH = 180;
-
-const int RESOLUTION = WIDTH / FOV;
-const int HEIGHT = 80;
+void run_gui(float* fov_array_, float* playerX_, float* playerY_, float* direction_, int* FOV_, int* WIDTH_, int* RESOLUTION_, int* HEIGHT_);
 
 #endif
