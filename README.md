@@ -25,5 +25,6 @@ If you want to display it on a new window with GUI run
 the command has to be executed into the root directory.
 
 ##configurations
+
 in the /conf folder you can find configurations for the terminal and the GUI.
 
