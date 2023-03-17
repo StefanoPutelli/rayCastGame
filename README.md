@@ -22,8 +22,12 @@ If you want to display it on a new window with GUI run
 ```
 ./run.sh gui
 ```
-the command has to be executed into the root directory.
+the command has to be executed into the c++ directory directory.
 
 ## Configurations
 
 In the /conf folder you can find configurations for the terminal and the GUI.
+
+## JavaScript version
+
+The Javascript version is WIP.
