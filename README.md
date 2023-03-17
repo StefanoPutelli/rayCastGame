@@ -26,5 +26,5 @@ the command has to be executed into the root directory.
 
 ## Configurations
 
-in the /conf folder you can find configurations for the terminal and the GUI.
+In the /conf folder you can find configurations for the terminal and the GUI.
 
