@@ -5,7 +5,7 @@
 A simple C++ ray casting game engine, that given a 2d array of the map let you explore it as a 3D space.
 
 - C++
-- OpenGl
+- OpenGL
 - ✨Magic ✨
 
 ## Features
