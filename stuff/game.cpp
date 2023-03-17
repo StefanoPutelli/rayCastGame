@@ -76,10 +76,10 @@ void rayCastInTheFov(int WIDTH, int FOV, int RESOLUTION, float* fov_array, unsig
     int start = (int)(direction - FOV / 2);
     for (int i = start; i < (int)(direction + FOV / 2); i++) {
         for (int r = 0; r < RESOLUTION; r++) {
-            pre_angle = i % 360 + (float)r / RESOLUTION;
-            angle = pre_angle < 0 ? pre_angle + 360 : pre_angle;
+            pre_angle = i % 360 + (float)r / (float)RESOLUTION;
+            angle = pre_angle < 0.0f ? pre_angle + 360.0f : pre_angle;
             dirVal = getDirVars(angle, playerX, playerY);
-            angle_rad = (float)(angle * M_PI / 180);
+            angle_rad = (angle * M_PI / 180.0f);
             sinAngle = sin(angle_rad);
             cosAngle = cos(angle_rad);
             sinSign = sinAngle > 0 ? 1 : -1;
@@ -98,7 +98,7 @@ void rayCastInTheFov(int WIDTH, int FOV, int RESOLUTION, float* fov_array, unsig
                     x_distance = ((dirVal.PDistInnerBlockX + (dptX * tile_size)) / abs(cosAngle));
                 }
                 int fov_index = (i - start) * RESOLUTION + r;
-                float fish_eye_correction = cos((float)(fov_index / RESOLUTION - FOV / 2) * M_PI / 180);
+                float fish_eye_correction = cos(((float)fov_index / (float)RESOLUTION - (float)FOV / 2.0f) * M_PI / 180.0f);
                 if (x_distance < y_distance) {
                     dX = (int)(playerX + (x_distance * cosAngle + tile_size / 2 * cosSign));
                     dY = (int)(playerY - (x_distance * sinAngle));
