@@ -1,7 +1,5 @@
 # RayCast Simulator
 
-[![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
-
 A simple C++ ray casting game engine, that given a 2d array of the map let you explore it as a 3D space.
 
 - C++
