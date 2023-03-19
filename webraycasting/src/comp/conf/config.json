@@ -1,0 +1,9 @@
+{
+    "FOV": 60,
+    "initial_direction": 0,
+    "dimensions": {
+        "width": 660,
+        "height": 600
+    },
+    "tile_size": 1
+}
