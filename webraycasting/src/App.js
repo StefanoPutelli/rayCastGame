@@ -7,9 +7,14 @@ const Map = new Map2D(map_text);
 const Ray = new RayCaster(conf, Map);
 const screen = new Screen(conf);
 
+//TODO: togliere lo shadowblur e cambaire invece il colore delle linee
+
 function App() {
-  
-  const canvas = useRef(null);
+
+  const canvas = useRef({
+    canvas: null,
+    ctx: null
+  });
   const keyPressed = useRef({})
   const mouseTurned = useRef(0);
 
@@ -20,7 +25,8 @@ function App() {
 
   useEffect(() => {
     const setCanvas = () => {
-      canvas.current = document.getElementById('rayCanvas');
+      canvas.current.canvas = document.getElementById('rayCanvas');
+      canvas.current.ctx = canvas.current.canvas.getContext('2d');
     }
     window.addEventListener('load', setCanvas());
     return () => {
@@ -30,11 +36,11 @@ function App() {
 
 
   useEffect(() => {
-    if(!canvas.current) return;
+    if(!canvas.current.canvas) return;
     setInterval(() => {
       Ray.move(keyPressed.current,conf.player_speed);
       checkTurn();
-      screen.drawScreen(canvas.current, Ray.rayCastInTheFov(), Map);
+      screen.drawScreen(canvas.current.ctx,canvas.current.canvas, Ray.rayCastInTheFov(), Map);
     }, 1000/conf.max_fps);
     return () => {
       clearInterval();
@@ -42,7 +48,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if(!canvas.current) return;
+    if(!canvas.current.canvas) return;
     const handleMouseMove = (e) => {
       mouseTurned.current += e.movementX * -0.02;
     }
@@ -53,19 +59,19 @@ function App() {
       delete keyPressed.current[e.key];
     }
     async function lockPointer() {
-      canvas.current.requestPointerLock({
+      canvas.current.canvas.requestPointerLock({
           unadjustedMovement: true,
         });
     }
     const handleResize = () => {
-      canvas.current.height = window.innerHeight;
-      canvas.current.width = window.innerWidth;
+      canvas.current.canvas.height = window.innerHeight;
+      canvas.current.canvas.width = window.innerWidth;
       Ray.setDimensions(window.innerWidth,  window.innerHeight, conf.FOV);
       screen.setDimensions(window.innerWidth,  window.innerHeight, conf.FOV);
     }
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('keydown', handleKeyDown);
-    canvas.current.addEventListener("click", lockPointer);
+    canvas.current.canvas.addEventListener("click", lockPointer);
     window.addEventListener('resize', handleResize);
     window.addEventListener('load', handleResize);
     window.addEventListener('keyup', handleKeyUp);
@@ -73,7 +79,7 @@ function App() {
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('keydown', handleKeyDown);
-      canvas.current.removeEventListener("click", lockPointer);
+      canvas.current.canvas.removeEventListener("click", lockPointer);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('load', handleResize);
     }

@@ -254,10 +254,10 @@ export class Screen {
         this.margin = parseInt((width - this.dimension.width)/2);
     }
 
-    drawScreen(canvas, fov_array, map2D) {
-        let ctx = canvas.getContext("2d");
+    drawScreen(ctx,canvas, fov_array, map2D) {
         let screenCenter = this.dimension.height / 2;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // ctx.clearRect(0, 0, canvas.width, canvas.height); //metodo per cancellare il canvas
+        canvas.width = canvas.width; //metodo per cancellare il canvas strano, ma funziona, forse più veloce
         for(let i = 0; i < fov_array.length; i++) {
             let halfHeight = screenCenter / fov_array[i];
             let start = screenCenter - halfHeight;
