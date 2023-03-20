@@ -140,24 +140,24 @@ export class RayCaster {
         }
     }
 
-    move(key) {
-        let deltaX;
-        let deltaY;
-        if (key === 'w') {
-            deltaY = -0.1 * Math.sin(this.direction * M_PI / 180);
-            deltaX = 0.1 * Math.cos(this.direction * M_PI / 180);
+    move(key,player_speed) {
+        let deltaX = 0;
+        let deltaY = 0;
+        if (key.w) {
+            deltaY += -player_speed * Math.sin(this.direction * M_PI / 180);
+            deltaX += player_speed * Math.cos(this.direction * M_PI / 180);
         }
-        if (key === 's') {
-            deltaY = 0.1 * Math.sin(this.direction * M_PI / 180);
-            deltaX = -0.1 * Math.cos(this.direction * M_PI / 180);
+        if (key.s) {
+            deltaY += player_speed * Math.sin(this.direction * M_PI / 180);
+            deltaX += -player_speed * Math.cos(this.direction * M_PI / 180);
         }
-        if (key === 'a') {
-            deltaY = -0.1 * Math.cos(this.direction * M_PI / 180);
-            deltaX = -0.1 * Math.sin(this.direction * M_PI / 180);
+        if (key.a) {
+            deltaY += -player_speed * Math.cos(this.direction * M_PI / 180);
+            deltaX += -player_speed * Math.sin(this.direction * M_PI / 180);
         }
-        if (key === 'd') {
-            deltaY = 0.1 * Math.cos(this.direction * M_PI / 180);
-            deltaX = 0.1 * Math.sin(this.direction * M_PI / 180);
+        if (key.d) {
+            deltaY += player_speed * Math.cos(this.direction * M_PI / 180);
+            deltaX += player_speed * Math.sin(this.direction * M_PI / 180);
         }
         if (deltaX !== 0 || deltaY !== 0) {
             if ((this.position.x + deltaX < 0 || this.position.x + deltaX >= this.map_width || this.position.y + deltaY < 0 || this.position.y + deltaY >= this.map_height || this.map2D.map2D[parseInt(this.position.y + deltaY)][parseInt(this.position.x + deltaX)] !== '#')) {
