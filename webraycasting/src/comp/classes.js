@@ -48,7 +48,6 @@ export class RayCaster {
     direction = 0;
     position = { x: 0, y: 0 };
     FOV = 0;
-    fov_array = [];
     RESOLUTION = 0;
     dimension = { width: 0, height: 0 };
     map2D = null;
@@ -86,6 +85,7 @@ export class RayCaster {
     setDimensions(width, height, fov) {
         this.dimension.width = parseInt(width/fov)*fov;
         this.dimension.height = height;
+        this.RESOLUTION = parseInt(this.dimension.width / this.FOV);
     }
 
 
@@ -126,16 +126,8 @@ export class RayCaster {
         }
     }
 
-    saveInTheFov(index, dist) {
-        this.fov_array[this.dimension.width - index] = Math.abs(dist);
-    }
-
     markBlock(map2D, x, y, marker) {
         map2D.map_copy[y][x] = marker;
-    }
-
-    getFovArray() {
-        return this.fov_array;
     }
 
     turn(value) {
@@ -148,10 +140,39 @@ export class RayCaster {
         }
     }
 
+    move(key) {
+        let deltaX;
+        let deltaY;
+        if (key === 'w') {
+            deltaY = -0.1 * Math.sin(this.direction * M_PI / 180);
+            deltaX = 0.1 * Math.cos(this.direction * M_PI / 180);
+        }
+        if (key === 's') {
+            deltaY = 0.1 * Math.sin(this.direction * M_PI / 180);
+            deltaX = -0.1 * Math.cos(this.direction * M_PI / 180);
+        }
+        if (key === 'a') {
+            deltaY = -0.1 * Math.cos(this.direction * M_PI / 180);
+            deltaX = -0.1 * Math.sin(this.direction * M_PI / 180);
+        }
+        if (key === 'd') {
+            deltaY = 0.1 * Math.cos(this.direction * M_PI / 180);
+            deltaX = 0.1 * Math.sin(this.direction * M_PI / 180);
+        }
+        if (deltaX !== 0 || deltaY !== 0) {
+            if ((this.position.x + deltaX < 0 || this.position.x + deltaX >= this.map_width || this.position.y + deltaY < 0 || this.position.y + deltaY >= this.map_height || this.map2D.map2D[parseInt(this.position.y + deltaY)][parseInt(this.position.x + deltaX)] !== '#')) {
+                this.position.x += deltaX;
+                this.position.y += deltaY;
+            }
+        }
+    }
+
+
     rayCastInTheFov() {
         this.map2D.resetMapCopy();
         let start = parseInt(this.direction - (this.FOV / 2));
         let end = parseInt(this.direction + (this.FOV / 2));
+        let fov_array = []
         for (let i = start; i < end; i++) {
             for (let r = 0; r < this.RESOLUTION; r++) {
                 let pre_angle = i % 360 + r / this.RESOLUTION;
@@ -184,12 +205,12 @@ export class RayCaster {
                         let dY = parseInt(this.position.y - (x_distance * sinAngle));
                         dptX += 1;
                         if (dY < 0 || dY >= this.map_height || dX < 0 || dX >= this.map_width) {
-                            this.saveInTheFov(fov_index, -1);
+                            fov_array[this.dimension.width - fov_index] = Math.abs(x_distance * fish_eye_correction);
                             break;
                         }
                         if (this.map2D.map2D[dY][dX] === '#') {
                             this.markBlock(this.map2D, dX, dY, 'X');
-                            this.saveInTheFov(fov_index, Math.abs(x_distance * fish_eye_correction));
+                            fov_array[this.dimension.width - fov_index] = Math.abs(x_distance * fish_eye_correction);
                             break;
                         }
 
@@ -198,18 +219,19 @@ export class RayCaster {
                         let dY = parseInt(this.position.y - (y_distance * sinAngle + this.tile_size / 2 * sinSign));
                         dptY += 1;
                         if (dY < 0 || dY >= this.map_height || dX < 0 || dX >= this.map_width) {
-                            this.saveInTheFov(fov_index, -1);
+                            fov_array[this.dimension.width - fov_index] = Math.abs(y_distance * fish_eye_correction);
                             break;
                         }
                         if (this.map2D.map2D[dY][dX] === '#') {
                             this.markBlock(this.map2D, dX, dY, 'Y');
-                            this.saveInTheFov(fov_index, Math.abs(y_distance * fish_eye_correction));
+                            fov_array[this.dimension.width - fov_index] = Math.abs(y_distance * fish_eye_correction);
                             break;
                         }
                     }
                 }
             }
         }
+        return fov_array;
     }
 }
 
@@ -226,15 +248,16 @@ export class Screen {
         this.margin = parseInt((conf.dimensions.width - this.dimension.width)/2);
     }
 
-    setDimensions(width, height) {
+    setDimensions(width, height, fov) {
         this.dimension.height = height;
-        this.dimension.width = width;
+        this.dimension.width = parseInt(width/fov)*fov;
+        this.margin = parseInt((width - this.dimension.width)/2);
     }
 
     drawScreen(canvas, fov_array, map2D) {
         let ctx = canvas.getContext("2d");
         let screenCenter = this.dimension.height / 2;
-        ctx.clearRect(0, 0, this.dimension.width, this.dimension.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         for(let i = 0; i < fov_array.length; i++) {
             let halfHeight = screenCenter / fov_array[i];
             let start = screenCenter - halfHeight;
