@@ -35,6 +35,7 @@ export class Map2D {
     resetMapCopy() {
         this.map_copy = this.map2D.map((row) => row.slice());
     }
+
     getMap() {
         return this.map2D;
     }
@@ -44,9 +45,20 @@ export class Map2D {
 
 }
 
-export class RayCaster {
-    direction = 0;
-    position = { x: 0, y: 0 };
+export class Entity {
+    direction = 0
+    position = {
+        x: 0,
+        y: 0
+    }
+    constructor(position_, direction_){
+        this.position.x = position_.x
+        this.position.y = position_.y
+        this.direction = direction_
+    }
+}
+
+export class Player extends Entity {
     FOV = 0;
     RESOLUTION = 0;
     dimension = { width: 0, height: 0 };
@@ -55,6 +67,7 @@ export class RayCaster {
     map_height = 0;
     map_width = 0;
     constructor(conf, map2D) {
+        super({x: 1, y:2},90)
         this.FOV = conf.FOV;
         this.direction = conf.initial_direction;
         this.dimension.height = conf.dimensions.height;
@@ -65,9 +78,8 @@ export class RayCaster {
         let map_dim = this.map2D.getDimensions();
         this.map_height = map_dim.height;
         this.map_width = map_dim.width;
-        let initialPosition = this.findPlayer();
-        this.position.x = initialPosition.x;
-        this.position.y = initialPosition.y;
+        this.position.x = 1;
+        this.position.y = 2;
         console.log("RayCaster constructor");
         console.log("direction " + this.direction)
         console.log("position x " + this.position.x + " y " + this.position.y)
@@ -86,6 +98,10 @@ export class RayCaster {
         this.dimension.width = parseInt(width/fov)*fov;
         this.dimension.height = height;
         this.RESOLUTION = parseInt(this.dimension.width / this.FOV);
+    }
+
+    getPlayerPosition() {
+        return this.position;
     }
 
 
@@ -160,16 +176,26 @@ export class RayCaster {
             deltaX += player_speed * Math.sin(this.direction * M_PI / 180);
         }
         if (deltaX !== 0 || deltaY !== 0) {
-            if ((this.position.x + deltaX < 0 || this.position.x + deltaX >= this.map_width || this.position.y + deltaY < 0 || this.position.y + deltaY >= this.map_height || this.map2D.map2D[parseInt(this.position.y + deltaY)][parseInt(this.position.x + deltaX)] !== '#')) {
-                this.position.x += deltaX;
-                this.position.y += deltaY;
+            let out_x = this.position.x + deltaX < 0 || this.position.x + deltaX >= this.map_width
+            let out_y = this.position.y + deltaY < 0 || this.position.y + deltaY >= this.map_height
+            if(!(out_x || out_y)){
+                if (this.map2D.map2D[parseInt(this.position.y + deltaY)][parseInt(this.position.x + deltaX)] === '#'){
+                    if(this.map2D.map2D[parseInt(this.position.y)][parseInt(this.position.x + deltaX)] === '#'){
+                        deltaX = 0
+                    }
+                    if(this.map2D.map2D[parseInt(this.position.y + deltaY)][parseInt(this.position.x)] === '#'){
+                        deltaY = 0
+                    }
+                }
             }
+            this.position.x += deltaX;
+            this.position.y += deltaY;
+            this.markBlock(this.map2D, parseInt(this.position.x), parseInt(this.position.y), 'P');
         }
     }
 
 
     rayCastInTheFov() {
-        this.map2D.resetMapCopy();
         let start = parseInt(this.direction - (this.FOV / 2));
         let end = parseInt(this.direction + (this.FOV / 2));
         let fov_array = []
@@ -269,7 +295,34 @@ export class Screen {
             ctx.stroke();
         }
 
-        //TODO: draw map
+    }
+
+
+    //TODO: fare meglio la minimappa
+    drawMap(ctx, map2D, playerX, playerY) {
+        let mapWidth = map2D.map_copy[0].length;
+        let mapHeight = map2D.map_copy.length;
+        let mapScale = 10;
+        ctx.clearRect(0, 0, mapWidth * mapScale, mapHeight * mapScale);
+        for(let i = 0; i < mapHeight; i++) {
+            for(let j = 0; j < mapWidth; j++) {
+                if(map2D.map_copy[i][j] === '#') {
+                    ctx.fillStyle = "rgba(255, 0, 0, 1)";
+                    ctx.fillRect(j * mapScale, i * mapScale, mapScale, mapScale);
+                } else if(map2D.map_copy[i][j] === 'X') {
+                    ctx.fillStyle = "rgba(0, 0, 255, 1)";
+                    ctx.fillRect(j * mapScale, i * mapScale, mapScale, mapScale);
+                } else if(map2D.map_copy[i][j] === 'Y') {
+                    ctx.fillStyle = "rgba(0, 255, 255, 1)";
+                    ctx.fillRect(j * mapScale, i * mapScale, mapScale, mapScale);
+                }
+            }
+        }
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(0, 255, 0, 1)";
+        console.log(playerX, playerY);
+        ctx.arc(playerX*mapScale, playerY*mapScale, mapScale/2, 0, 2 * Math.PI);
+        ctx.fill();
     }
 
 }

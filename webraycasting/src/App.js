@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
-import { Map2D, Screen, RayCaster } from "./comp/classes";
+import { Map2D, Screen, Player} from "./comp/classes";
 import { map_text } from "./comp/conf/map.js";
 import conf from "./comp/conf/config.json";
 
 const Map = new Map2D(map_text);
-const Ray = new RayCaster(conf, Map);
+const Ray = new Player(conf, Map);
 const screen = new Screen(conf);
 
 //TODO: togliere lo shadowblur e cambaire invece il colore delle linee
@@ -40,7 +40,9 @@ function App() {
     setInterval(() => {
       Ray.move(keyPressed.current,conf.player_speed);
       checkTurn();
+      Map.resetMapCopy();
       screen.drawScreen(canvas.current.ctx,canvas.current.canvas, Ray.rayCastInTheFov(), Map);
+      screen.drawMap(canvas.current.ctx, Map, Ray.getPlayerPosition().x, Ray.getPlayerPosition().y);
     }, 1000/conf.max_fps);
     return () => {
       clearInterval();
@@ -89,7 +91,15 @@ function App() {
 
 
   return (
-    <div className="App"><canvas id="rayCanvas" style={{ backgroundColor: "black", display: "block" }} /></div>
+    <div className="App">
+      <canvas id="rayCanvas" style={{ backgroundColor: "black", display: "block", position: "absolute", top: "0px", left: "0px" }} />
+      <canvas id="miniMap" style={{ display: "block", position: "absolute", top: "0px", left: "0px" }} />
+      <div style={{position: "absolute", right: "0", top: "0", color:"white"}}>
+        <p>WASD to move</p>
+        <p>Mouse to turn</p>
+        <p>Click to lock mouse</p>
+      </div>
+    </div>
   );
 }
 
