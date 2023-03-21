@@ -5,14 +5,12 @@ export class Map2D {
     static map2D = [];
     height = 0;
     width = 0;
-    static map_copy = [];
     constructor(map_text) {
         let buf = map_text.split("\n");
         this.map2D = buf.map((row) => row.split(''));
         let dim = this.setDimensions();
         this.height = dim.maxColLenght;
         this.width = dim.maxRowLenght;
-        this.resetMapCopy();
     }
     setDimensions() {
         let maxRowLenght = 0;
@@ -31,9 +29,6 @@ export class Map2D {
         this.map2D.forEach((row) => {
             console.log(row.join(''));
         })
-    }
-    resetMapCopy() {
-        this.map_copy = this.map2D.map((row) => row.slice());
     }
 
     getMap() {
@@ -66,8 +61,8 @@ export class Player extends Entity {
     tile_size = 0;
     map_height = 0;
     map_width = 0;
-    constructor(conf, map2D) {
-        super({x: 1, y:2},90)
+    constructor(conf, map2D, position, direction) {
+        super({x: position.x, y:position.y},direction);
         this.FOV = conf.FOV;
         this.direction = conf.initial_direction;
         this.dimension.height = conf.dimensions.height;
@@ -78,8 +73,6 @@ export class Player extends Entity {
         let map_dim = this.map2D.getDimensions();
         this.map_height = map_dim.height;
         this.map_width = map_dim.width;
-        this.position.x = 1;
-        this.position.y = 2;
         console.log("RayCaster constructor");
         console.log("direction " + this.direction)
         console.log("position x " + this.position.x + " y " + this.position.y)
@@ -142,10 +135,6 @@ export class Player extends Entity {
         }
     }
 
-    markBlock(map2D, x, y, marker) {
-        map2D.map_copy[y][x] = marker;
-    }
-
     turn(value) {
         if (value > 0) {
             this.direction = this.direction + value >= 360 ? this.direction = 0 + this.direction + value - 360 : this.direction + value;
@@ -190,7 +179,6 @@ export class Player extends Entity {
             }
             this.position.x += deltaX;
             this.position.y += deltaY;
-            this.markBlock(this.map2D, parseInt(this.position.x), parseInt(this.position.y), 'P');
         }
     }
 
@@ -235,7 +223,6 @@ export class Player extends Entity {
                             break;
                         }
                         if (this.map2D.map2D[dY][dX] === '#') {
-                            this.markBlock(this.map2D, dX, dY, 'X');
                             fov_array[this.dimension.width - fov_index] = Math.abs(x_distance * fish_eye_correction);
                             break;
                         }
@@ -249,7 +236,6 @@ export class Player extends Entity {
                             break;
                         }
                         if (this.map2D.map2D[dY][dX] === '#') {
-                            this.markBlock(this.map2D, dX, dY, 'Y');
                             fov_array[this.dimension.width - fov_index] = Math.abs(y_distance * fish_eye_correction);
                             break;
                         }
@@ -300,19 +286,20 @@ export class Screen {
 
     //TODO: fare meglio la minimappa
     drawMap(ctx, map2D, playerX, playerY) {
-        let mapWidth = map2D.map_copy[0].length;
-        let mapHeight = map2D.map_copy.length;
+        let mapWidth = map2D[0].length;
+        let mapHeight = map2D.length;
         let mapScale = 10;
-        ctx.clearRect(0, 0, mapWidth * mapScale, mapHeight * mapScale);
+        ctx.fillStyle = "rgba(0,0,0,0)";
+        ctx.fillRect(0, 0, mapWidth * mapScale, mapHeight * mapScale);
         for(let i = 0; i < mapHeight; i++) {
             for(let j = 0; j < mapWidth; j++) {
-                if(map2D.map_copy[i][j] === '#') {
+                if(map2D[i][j] === '#') {
                     ctx.fillStyle = "rgba(255, 0, 0, 1)";
                     ctx.fillRect(j * mapScale, i * mapScale, mapScale, mapScale);
-                } else if(map2D.map_copy[i][j] === 'X') {
+                } else if(map2D[i][j] === 'X') {
                     ctx.fillStyle = "rgba(0, 0, 255, 1)";
                     ctx.fillRect(j * mapScale, i * mapScale, mapScale, mapScale);
-                } else if(map2D.map_copy[i][j] === 'Y') {
+                } else if(map2D[i][j] === 'Y') {
                     ctx.fillStyle = "rgba(0, 255, 255, 1)";
                     ctx.fillRect(j * mapScale, i * mapScale, mapScale, mapScale);
                 }
@@ -320,7 +307,6 @@ export class Screen {
         }
         ctx.beginPath();
         ctx.fillStyle = "rgba(0, 255, 0, 1)";
-        console.log(playerX, playerY);
         ctx.arc(playerX*mapScale, playerY*mapScale, mapScale/2, 0, 2 * Math.PI);
         ctx.fill();
     }
