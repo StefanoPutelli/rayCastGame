@@ -5,7 +5,12 @@ export class Map2D {
     static map2D = [];
     height = 0;
     width = 0;
+
     constructor(map_text) {
+        this.loadMap(map_text);
+    }
+
+    loadMap(map_text){
         let buf = map_text.split("\n");
         this.map2D = buf.map((row) => row.split(''));
         let dim = this.setDimensions();
@@ -34,6 +39,7 @@ export class Map2D {
     getMap() {
         return this.map2D;
     }
+
     getDimensions() {
         return { height: this.height, width: this.width };
     }
@@ -288,7 +294,7 @@ export class Screen {
     drawMap(ctx, map2D, playerX, playerY) {
         let mapWidth = map2D[0].length;
         let mapHeight = map2D.length;
-        let mapScale = 10;
+        let mapScale = this.dimension.width * 0.5 / mapWidth;
         ctx.fillStyle = "rgba(0,0,0,0)";
         ctx.fillRect(0, 0, mapWidth * mapScale, mapHeight * mapScale);
         for(let i = 0; i < mapHeight; i++) {
@@ -310,5 +316,11 @@ export class Screen {
         ctx.arc(playerX*mapScale, playerY*mapScale, mapScale/2, 0, 2 * Math.PI);
         ctx.fill();
     }
+
+}
+
+//TODO: implementare texture
+
+class Texture {
 
 }

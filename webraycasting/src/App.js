@@ -1,15 +1,18 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Map2D, Screen, Player} from "./comp/classes";
-import { map_text } from "./comp/conf/map.js";
+import map_text from "./comp/conf/map.txt";
 import conf from "./comp/conf/config.json";
 
+const reader = new FileReader();
 const Map = new Map2D(map_text);
-const Ray = new Player(conf, Map, {x:1.5 , y:2.5}, 90);
+const Ray = new Player(conf, Map, {x:28 , y:20}, 90);
 const screen = new Screen(conf);
 
 //TODO: togliere lo shadowblur e cambaire invece il colore delle linee
 
 function App() {
+
+  const [loaded, setLoaded] = useState(false);
 
   const canvas = useRef({
     canvas: null,
@@ -85,9 +88,6 @@ function App() {
       window.removeEventListener('load', handleResize);
     }
   }, []);
-
-
-
 
   return (
     <div className="App">
